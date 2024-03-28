@@ -81,8 +81,7 @@ available_actions_keys = list(available_actions.keys())
 available_actions_values = list(available_actions.values())
 
 available_gestures = {
-    name: "assets/images/dropdowns/" + name + ".png"
-    for name in (
+    name: "assets/images/dropdowns/" + name + ".png" for name in (
         "None",
         "Eye blink right",
         "Eye blink left",
