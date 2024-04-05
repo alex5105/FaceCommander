@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<head>
+
+<title>About FaceCommander</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+@import url(about.css);
+</style>
+
+</head>
+<body
+><h1>FaceCommander</h1
+><p>Version <span id="app-version">0</span>.</p
+><p>Control and move the pointer using head movements and facial gestures.</p
+><p>Disclaimer: This software isn't intended for medical use.</p
+><p
+    >FaceCommander is a project of the
+    <a href="https://acecentre.org.uk/">Ace Centre</a> charity.</p>
+<h2>Attribution</h2
+><p
+    >Blink graphics in the user interface are based on
+    <a href="https://www.flaticon.com/free-icons/eye"
+        >Eye icons created by Kiranshastry - Flaticon</a>.</p
+><p
+    >This software was based on <a
+        href="https://github.com/acidcoke/Grimassist/">Grimassist</a
+    >, itself based on <a
+        href="https://github.com/google/project-gameface" >Google GameFace</a
+    >.</p
+><button id="clicker">Open in browser</button
+><script>
+document.getElementById("clicker").onclick = (event => {
+    console.log("clickerty");
+    console.log(window.pywebview);
+    console.log(window.pywebview.api);
+});
+// onclick="window.pywebview.api.navigate('https://example.com')
+</script></body>

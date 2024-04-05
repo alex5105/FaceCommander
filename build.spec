@@ -1,5 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from PyInstaller.utils.hooks import collect_all
+
 from pathlib import Path
 import mediapipe
 import customtkinter
@@ -12,17 +14,19 @@ mp_modules =  Path(mp_init.parent,"modules")
 ctk_init = Path(customtkinter.__file__)
 ctk_modules =  Path(ctk_init.parent,"modules")
 
-
-
+tkinterwebCollections = collect_all('tkinterweb')
 app = Analysis(
     ['grimassist.py'],
     pathex=[],
-    binaries=[],
-    datas=[(mp_modules.as_posix(), 'mediapipe/modules'),
-                    ('assets','assets'),
-                    ('configs','configs'),    
-                    (ctk_init.parent.as_posix(), 'customtkinter')],
-    hiddenimports=[],
+    binaries=tkinterwebCollections[1],
+    datas=[
+        (mp_modules.as_posix(), 'mediapipe/modules')
+        , ('assets','assets')
+        , ('configs','configs')
+        , (ctk_init.parent.as_posix(), 'customtkinter')
+        , *tkinterwebCollections[0]
+    ],
+    hiddenimports=tkinterwebCollections[2],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

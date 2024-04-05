@@ -1,0 +1,22 @@
+/* 
+@font-face {
+    font-family: "GoogleSans";
+    src:
+        local("GoogleSans"),
+        url("assets/fonts/GoogleSans-Regular.ttf") format("ttf");
+}
+
+html {
+    font-family: "GoogleSans", sans-serif;
+}
+ */
+
+
+@font-face {
+    font-family: "Bitstream Vera Serif Bold";
+    src: url("https://mdn.github.io/css-examples/web-fonts/VeraSeBd.ttf");
+  }
+
+  body {
+    font-family: "Bitstream Vera Serif Bold", serif;
+  }
