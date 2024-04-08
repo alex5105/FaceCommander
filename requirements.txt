@@ -11,3 +11,6 @@ pygrabber;  sys_platform == 'win32'
 pyinstaller==5.11.0
 Pillow==10.1.0
 numpy==1.26.2
+
+# Web view.
+pywebview >=5.0.5
