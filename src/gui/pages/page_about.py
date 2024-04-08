@@ -1,8 +1,5 @@
 # Standard library imports.
 #
-# https://docs.python.org/3/library/datetime.html#datetime.datetime.now
-from datetime import datetime
-#
 # Logging module.
 # https://docs.python.org/3.8/library/logging.html
 import logging
