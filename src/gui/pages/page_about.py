@@ -73,7 +73,7 @@ def add_address_tag(pageAbout, address):
 
 def add_address_tags(pageAbout, addresses):
     # TOTH Underlining https://stackoverflow.com/a/44890599/7657675
-    pageAbout.text.tag_configure("link", underline=True)
+    pageAbout.text.tag_configure("link", underline=True, foreground="#0000EE")
 
     for address in addresses: add_address_tag(pageAbout, address)
 
@@ -123,6 +123,7 @@ class PageAbout(SafeDisposableFrame):
         # only way that event handlers can be bound.
         add_address_tags(self, (
             "https://acecentre.org.uk",
+            "https://github.com/AceCentre/FaceCommander",
             "https://www.flaticon.com/free-icons/eye",
             "https://github.com/acidcoke/Grimassist/",
             "https://github.com/google/project-gameface"
@@ -149,15 +150,19 @@ class PageAbout(SafeDisposableFrame):
         , f"Version {ConfigManager().version}\n"
         "Control and move the pointer using head movements and facial"
         " gestures.\nDisclaimer: This software isn't intended for medical"
-        " use.\nFaceCommander is a project of the ", ()
-        , "Ace Centre", tags_for(
-            "https://acecentre.org.uk")
-        , " charity.\n", ()
+        " use.\nFaceCommander is an ", (),
+        "Open Source project", tags_for(
+            "https://github.com/AceCentre/FaceCommander"),
+        " developed by the Ace Centre. Visit ", (),
+        "our website", tags_for(
+            "https://acecentre.org.uk"),
+        " to find out more about how we provide support for people with"
+        " complex communications difficulties.\n", ()
         , "Attribution\n", "h2"
         , "Blink graphics in the user interface are based on ", ()
         , "Eye icons created by Kiranshastry - Flaticon", tags_for(
             "https://www.flaticon.com/free-icons/eye")
-        , " .\nThis software was based on ", ()
+        , ".\nThis software was based on ", ()
         , "Grimassist", tags_for(
             "https://github.com/acidcoke/Grimassist/")
         , ", itself based on ", ()
