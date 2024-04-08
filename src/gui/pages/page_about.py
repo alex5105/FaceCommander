@@ -74,8 +74,6 @@ def add_address_tag(pageAbout, address):
 def add_address_tags(pageAbout, addresses):
     # TOTH Underlining https://stackoverflow.com/a/44890599/7657675
     pageAbout.text.tag_configure("link", underline=True)
-    # TBD make the pointer change when it hovers. This doesn't work
-    #     , cursor="hand2")
 
     for address in addresses: add_address_tag(pageAbout, address)
 
@@ -90,6 +88,7 @@ def tags_for(address):
     ) from keyError
 
 class PageAbout(SafeDisposableFrame):
+    hoverCursor = "hand2"
 
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
@@ -115,7 +114,7 @@ class PageAbout(SafeDisposableFrame):
             self, wrap="word", borderwidth=0, font=font12, spacing1=20
             , height=10 # height value has to be guessed it seems.
         ) 
-        #
+
         # Create tags for styling the page content.
         self.text.tag_configure("h1", font=font24)
         self.text.tag_configure("h2", font=font18)
@@ -168,6 +167,17 @@ class PageAbout(SafeDisposableFrame):
         )
         self.text.configure(state='disabled')
 
+        # When the pointer hovers over a link, change it to a hand. It might
+        # seem like that could be done by adding a configuration to the tag,
+        # which is how links are underlined. However, it seems like that doesn't
+        # work and the cursor cannot be configured at the tag level. The
+        # solution is to configure and reconfigure it dynmically, at the widget
+        # level, in the hover handlers.
+        #
+        # Discover the default cursor configuration here and store it. The value
+        # is used in the hover handlers.
+        self.initialCursor = self.text['cursor']
+
         # Label to display the address of a link when it's hovered over.
         #
         # TBD make it transparent. For now it takes the background colour of the
@@ -181,12 +191,14 @@ class PageAbout(SafeDisposableFrame):
         # TOTH how to set the text of a label.
         # https://stackoverflow.com/a/17126015/7657675
         self.hoverLabel.configure(text=address)
+        self.text.configure(cursor=self.hoverCursor)
 
     def hover_leave(self, address, event):
         logger.info(f'hover({address}, {event}) {event.type}')
         # TOTH how to set the text of a label.
         # https://stackoverflow.com/a/17126015/7657675
         self.hoverLabel.configure(text="")
+        self.text.configure(cursor=self.initialCursor)
 
     def open_in_browser(self, address, event):
         logger.info(f'open_in_browser({address}, {event})')
