@@ -20,7 +20,7 @@ class MainGui:
         self.tk_root = tk_root
 
         self.tk_root.geometry("1024x800")
-        self.tk_root.title(f"Grimassist {ConfigManager().version}")
+        self.tk_root.title(f"FaceCommander {ConfigManager().version}")
         self.tk_root.iconbitmap("assets/images/icon.ico")
         self.tk_root.resizable(width=True, height=True)
 
