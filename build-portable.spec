@@ -15,7 +15,7 @@ ctk_modules =  Path(ctk_init.parent,"modules")
 
 
 app = Analysis(
-    ['grimassist.py'],
+    ['face_commander.py'],
     pathex=[],
     binaries=[],
     datas=[(mp_modules.as_posix(), 'mediapipe/modules'),
@@ -41,7 +41,7 @@ exe = EXE(
     app.zipfiles,
     app.datas,
     [],
-    name='grimassist',
+    name='facecommander',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

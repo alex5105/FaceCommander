@@ -56,14 +56,14 @@ jobs:
       run: |
         Copy-Item -Path assets -Destination dist-portable\ -Recurse
         Copy-Item -Path configs -Destination dist-portable\ -Recurse
-        Compress-Archive -Path dist-portable -DestinationPath Grimassist-Portable-${{github.ref_name}}.zip
+        Compress-Archive -Path dist-portable -DestinationPath FaceCommander-Portable-${{github.ref_name}}.zip
     
     - name: release
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          Output/Grimassist-Installer-${{github.ref_name}}.exe
-          Grimassist-Portable-${{github.ref_name}}.zip
+          Output/FaceCommander-Installer-${{github.ref_name}}.exe
+          FaceCommander-Portable-${{github.ref_name}}.zip
         tag_name: ${{github.ref_name}}
         draft: false
         prerelease: false
