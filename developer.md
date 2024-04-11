@@ -1,4 +1,11 @@
-# Developer getting started guide
+# Developer guide
+This guide has information for developer contributors to Face Commander.
+
+-   Getting started.
+-   Build instructions.
+-   Tips for Git on Windows.
+
+# Getting started
 Follow these instructions to get started as a developer for this project.
 
 1.  Install Python 3.10 for Windows.
@@ -45,10 +52,70 @@ Follow these instructions to get started as a developer for this project.
     Run commands like this.
 
         cd /path/where/you/cloned/FaceCommander
-        .\venv\Scripts\python.exe grimassist.py
+        .\venv\Scripts\python.exe face_commander.py
 
 The program should start. Its print logging should appear in the terminal or
 Powershell session.
+
+# Build instructions
+A Windows executable and installer can be built for this application. This type
+of executable is sometimes referred to as a *frozen* Python application.
+
+To build the executable and installer you will need these tools.
+
+-   [PyInstaller](https://pyinstaller.org/) for the executable.  
+    It will already have been installed into the venv, see above, because it is
+    listed in the [requirements.txt](requirements.txt) file.
+
+-   [Inno Setup](https://jrsoftware.org/isinfo.php) for the installer.  
+    It can be obtained from their
+    [downloads page](https://jrsoftware.org/isdl.php#stable). Look for
+    `innosetup-X.X.X.exe` where X.X.X is at least the 6.2.2 version. The
+    download will install the Inno Setup Compiler application, which is an
+    installer builder.
+
+Proceed as follows.
+
+1.  Build the executable.
+
+    Run commands like this
+
+        cd /path/where/you/cloned/FaceCommander
+        .\venv\Scripts\pyinstaller.exe .\build.spec
+    
+    That creates a `build/` and a `dist/` sub-directory.
+    
+    Tip: If those sub-directories already exist you will be prompted whether to
+    delete them before proceeding. You can suppress the prompt by running a
+    command like this instead.
+
+        .\venv\Scripts\pyinstaller.exe --noconfirm .\build.spec
+
+2.  Test the executable.
+
+    The executable will be here.
+    `/path/where/you/cloned/FaceCommander/dist/facecommander/facecommander.exe`
+
+    Run it at least once to test it, for example by double-clicking. Note that
+    the directory and .exe file names have no underscore, unlike the .py file
+    name.
+
+3.  Build the installer.
+
+    Open the `installer.iss` file in the Inno Setup Compiler application that
+    you installed. You might be able to do that by double clicking the file,
+    depending on the options you chose when you installed Inno Setup. Otherwise
+    you can start the Inno Setup Compiler and open the `installer.iss` file by
+    hand.
+
+    In the compiler select Build, Compile to build the installer, or press
+    Ctrl-F9 as a shortcut. That will create an `Output/` sub-directory, with a
+    `FaceCommander-Installer-vX.X.X.exe` file in it.
+
+Run the installer .exe you just generated at least once to test it, for example
+by double-clicking.
+
+That concludes building the executable and installer.
 
 # Tips for Git on Windows
 Git for Windows can be installed with winget as described here.  
