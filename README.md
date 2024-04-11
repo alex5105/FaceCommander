@@ -1,56 +1,43 @@
-# Grimassist
-Grimassist helps gamers control their mouse cursor using their head movement and facial gestures.
+# Face Commander
+Control and move the pointer, and type, using head movements and facial
+gestures.
 
+# Warning
+-   This software isn't intended for human life-critical decisions, nor for
+    medical use.
+-   This software works by recognising *face landmarks* only. Face landmarks
+    don't provide facial recognition nor identification.
+-   This software doesn't store any unique face representation.
 
+# Download the installer
+1.  Download the FaceCommander-Installer.exe from the
+    [Release section](../../releases/).
+2.  Install it.
+3.  Run from your Windows shortcuts or desktop.
 
-# Download 
+# Download as a single portable directory
+1. Download the program from the [Release section](../../releases/).
+2. Run `facecommander.exe`
 
-## Single portable directory
+# Run the code on Windows
+1.  Install Python 3.10 for Windows, from here for example.  
+    [python.org/downloads/release/python-31011/](https://www.python.org/downloads/release/python-31011/)
 
-1. Download the program from [Release section](../../releases/)
-2. Run `grimassist.exe`
+2.  Create a Python virtual environment (venv).
 
+        cd /path/where/you/cloned/FaceCommander
+        python -m venv venv
 
-## Installer 
+3.  Install the required PIP modules into the venv.
 
-1. Download the Grimassist-Installer.exe from [Release section](../../releases/)
-2. Install it 
-3. Run from your Windows shortcuts/desktop
+        .\venv\Scripts\python.exe -m pip install --upgrade pip
+        .\venv\Scripts\python.exe -m pip install -r .\requirements.txt
 
+Run the application.
 
-# Model used
-MediaPipe Face Landmark Detection API [Task Guide](https://developers.google.com/mediapipe/solutions/vision/face_landmarker)  
-[MediaPipe BlazeFace Model Card](https://storage.googleapis.com/mediapipe-assets/MediaPipe%20BlazeFace%20Model%20Card%20(Short%20Range).pdf)  
-[MediaPipe FaceMesh Model Card](https://storage.googleapis.com/mediapipe-assets/Model%20Card%20MediaPipe%20Face%20Mesh%20V2.pdf)  
-[Mediapipe Blendshape V2 Model Card](https://storage.googleapis.com/mediapipe-assets/Model%20Card%20Blendshape%20V2.pdf)  
+    .\venv\Scripts\python.exe face_commander.py
 
-
-
-# Application
-- Control mouse cursor in games.
-- Intended users are people who choose to use face-control and head movement for gaming purposes.
-
-# Out-of-Scope Applications
-* This project is not intended for human life-critical decisions 
-* Predicted face landmarks do not provide facial recognition or identification and do not store any unique face representation.
-
-
-# Python application
-
-## Installation
-> Environment
->- Windows  
->- Python 3.10
-```
-pip install -r requirements.txt
-```
-
-## Quick start
-1. Run main application
-    ```
-    python grimassist.py
-    ```
-
+In case of difficulty or for details, see the [Developer guide](./developer.md).
 
 # Configs
 ## Basic config
@@ -94,22 +81,12 @@ gesture_name: [device_name, action_name, threshold, trigger_type]
 | threshold    | The action trigger threshold has values ranging from 0.0 to 1.0.                                                                                                                                                                                                                                                                                                                      |
 | trigger_type | "single" for a single trigger<br/> "hold" for ongoing action. <br/> "dynamic" for a mixture of single and hold. It first acts like single and after passing the amount of miliseconds from hold_trigger_ms like hold. Note: this is the default behaviour for mouse buttons<br/> "toggle" to switch an action on and off<br/>"rapid" trigger an action every "rapid_fire_interval_ms" |
 
-
-
-
-
-# Build
-
-## Pyinstaller / Frozen app
-```
-    pyinstaller build.spec
-```
-
-# Build Installer
-
-1. Install [inno6](https://jrsoftware.org/isdl.php#stable)
-2. Build using the `installer.iss` file  
-
-# Attribution
+# Attributions
 Blink graphics in the user interface are based on
 [Eye icons created by Kiranshastry - Flaticon](https://www.flaticon.com/free-icons/eye).
+
+## Model used
+MediaPipe Face Landmark Detection API [Task Guide](https://developers.google.com/mediapipe/solutions/vision/face_landmarker)  
+[MediaPipe BlazeFace Model Card](https://storage.googleapis.com/mediapipe-assets/MediaPipe%20BlazeFace%20Model%20Card%20(Short%20Range).pdf)  
+[MediaPipe FaceMesh Model Card](https://storage.googleapis.com/mediapipe-assets/Model%20Card%20MediaPipe%20Face%20Mesh%20V2.pdf)  
+[Mediapipe Blendshape V2 Model Card](https://storage.googleapis.com/mediapipe-assets/Model%20Card%20Blendshape%20V2.pdf)  
