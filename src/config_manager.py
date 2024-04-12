@@ -13,12 +13,12 @@ from src.utils.Trigger import Trigger
 
 VERSION = "0.5.0"
 
-DEFAULT_JSON = Path(f"C:/Users/{os.getlogin()}/Grimassist/configs/default.json")
-BACKUP_PROFILE = Path(f"C:/Users/{os.getlogin()}/Grimassist/configs/default")
+DEFAULT_JSON = Path(f"C:/Users/{os.getlogin()}/FaceCommander/configs/default.json")
+BACKUP_PROFILE = Path(f"C:/Users/{os.getlogin()}/FaceCommander/configs/default")
 
 logger = logging.getLogger("ConfigManager")
 
-config_dir = f"C:/Users/{os.getlogin()}/Grimassist/configs/"
+config_dir = f"C:/Users/{os.getlogin()}/FaceCommander/configs/"
 default_dir = os.path.join(config_dir, "default")
 
 # Create the main config directory if it doesn't exist
@@ -30,12 +30,12 @@ if not os.path.isdir(config_dir):
 if not os.path.isdir(default_dir):
     os.mkdir(default_dir)
 
-if not os.path.isdir(f"C:/Users/{os.getlogin()}/Grimassist/configs/"):
-    shutil.copytree("configs", f"C:/Users/{os.getlogin()}/Grimassist/configs/")
-    os.mkdir(f"C:/Users/{os.getlogin()}/Grimassist/configs/")
+if not os.path.isdir(f"C:/Users/{os.getlogin()}/FaceCommander/configs/"):
+    shutil.copytree("configs", f"C:/Users/{os.getlogin()}/FaceCommander/configs/")
+    os.mkdir(f"C:/Users/{os.getlogin()}/FaceCommander/configs/")
 
-if not os.path.isdir(f"C:/Users/{os.getlogin()}/Grimassist/configs/default"):
-    os.mkdir(f"C:/Users/{os.getlogin()}/Grimassist/configs/default")
+if not os.path.isdir(f"C:/Users/{os.getlogin()}/FaceCommander/configs/default"):
+    os.mkdir(f"C:/Users/{os.getlogin()}/FaceCommander/configs/default")
 
 
 class ConfigManager(metaclass=Singleton):
