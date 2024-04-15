@@ -1,3 +1,8 @@
+
+# INI file parser, used to get the version number.
+# https://docs.python.org/3/library/configparser.html
+from configparser import ConfigParser
+
 import copy
 import json
 import logging
@@ -5,13 +10,19 @@ import shutil
 import time
 import tkinter as tk
 import os
+#
+# Object oriented path handling.
+# https://docs.python.org/3/library/pathlib.html
 from pathlib import Path
 
 from src.singleton_meta import Singleton
 from src.task_killer import TaskKiller
 from src.utils.Trigger import Trigger
 
-VERSION = "0.4.1"
+configParser = ConfigParser()
+versionINIPath = Path(__file__).parents[1] / "assets" / "Version.ini"
+configParser.read(versionINIPath)
+VERSION = configParser['Release']['VersionNumber']
 
 DEFAULT_JSON = Path(f"C:/Users/{os.getlogin()}/FaceCommander/configs/default.json")
 BACKUP_PROFILE = Path(f"C:/Users/{os.getlogin()}/FaceCommander/configs/default")
