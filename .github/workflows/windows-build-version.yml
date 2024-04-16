@@ -108,11 +108,14 @@ jobs:
          -DestinationPath FaceCommander-Portable-$Env:VersionTag".zip"
     - name: release
       uses: softprops/action-gh-release@v1
+      # Reference documentation is near here.
+      # https://github.com/marketplace/actions/gh-release
       with:
-        files: |
-          Output/FaceCommander-Installer-${{env.VersionTag}}.exe
-          FaceCommander-Portable-${{env.VersionTag}}.zip
+        tag_name: ${{env.VersionTag}}
         name: ${{env.VersionTag}}
         draft: false
         prerelease: true
         fail_on_unmatched_files: true
+        files: |
+          Output/FaceCommander-Installer-${{env.VersionTag}}.exe
+          FaceCommander-Portable-${{env.VersionTag}}.zip
