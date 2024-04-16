@@ -1,8 +1,3 @@
-
-# INI file parser, used to get the version number.
-# https://docs.python.org/3/library/configparser.html
-from configparser import ConfigParser
-
 import copy
 import json
 import logging
@@ -18,11 +13,12 @@ from pathlib import Path
 from src.singleton_meta import Singleton
 from src.task_killer import TaskKiller
 from src.utils.Trigger import Trigger
+from src.utils.readini import get_ini_value
 
-configParser = ConfigParser()
-versionINIPath = Path(__file__).parents[1] / "assets" / "Version.ini"
-configParser.read(versionINIPath)
-VERSION = configParser['Release']['VersionNumber']
+VERSION = get_ini_value(
+    Path(__file__).parents[1] / "assets" / "Version.ini"
+    , 'Release', 'VersionNumber'
+)
 
 DEFAULT_JSON = Path(f"C:/Users/{os.getlogin()}/FaceCommander/configs/default.json")
 BACKUP_PROFILE = Path(f"C:/Users/{os.getlogin()}/FaceCommander/configs/default")
