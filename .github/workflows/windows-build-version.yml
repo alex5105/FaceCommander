@@ -63,7 +63,7 @@ jobs:
           github.rest.git.createRef({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            ref: refs/tags/v${{needs.check.outputs.VersionNumber}},
+            ref: "refs/tags/v${{needs.check.outputs.VersionNumber}}",
             sha: context.sha
           })
     - name: Demo version number
