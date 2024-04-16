@@ -55,8 +55,9 @@ jobs:
     runs-on: windows-latest
     needs: check
     env:
-      # Convenience variable with v prefix and short name.
+      # Convenience variables with v prefix and short name.
       VersionTag: v${{needs.check.outputs.VersionNumber}}
+      VersionTagSpaceless: v${{needs.check.outputs.VersionNumberSpaceless}}
     steps:
     - name: Create tag
       # Tips of the hat.
@@ -72,7 +73,7 @@ jobs:
           github.rest.git.createRef({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            ref: "refs/tags/${{env.VersionTag}}",
+            ref: "refs/tags/${{env.VersionTagSpaceless}}",
             sha: context.sha
           })
     - name: Demo environment variable and line continuation in PowerShell
