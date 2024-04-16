@@ -14,4 +14,17 @@ def ini_version():
     versionINI.read(versionINIPath)
     return versionINI['Release']['VersionNumber']
 
-if __name__ == "__main__": print(ini_version())
+if __name__ == "__main__":
+    # Argument parsing module.
+    # https://docs.python.org/3/library/argparse.html
+    from argparse import ArgumentParser
+    argumentParser = ArgumentParser(
+        description='''
+Print the version number from the assets/Version.ini file in a key=value format
+for a GitHub workflow output.'''
+    )
+    argumentParser.add_argument(
+        "key", type=str, default="version_number", help=
+        'Key name. Default: version_number')
+    arguments = argumentParser.parse_args()
+    print(f'{arguments.key}={ini_version()}')
