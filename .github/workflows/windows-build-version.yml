@@ -15,7 +15,7 @@ jobs:
       matrix:
         python-version: ["3.10"]
     outputs:
-      version_number: ${{ steps.get_version_number.outputs.version_number }}
+      VersionNumber: ${{ steps.get_version_number.outputs.VersionNumber }}
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -25,7 +25,8 @@ jobs:
     - name: Get version number
       id: get_version_number
       run: |
-        python src/utils/printversion.py version_number >> "$GITHUB_OUTPUT"
+        python src/utils/readini.py\
+          assets/Version.ini Release VersionNumber >> "$GITHUB_OUTPUT"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -59,7 +60,7 @@ jobs:
     #     pyinstaller --distpath dist-portable build-portable.spec
     - name: Demo version number
       run: |
-        New-Item delme-${{needs.check.outputs.version_number}}.txt -type file
+        New-Item delme-${{needs.check.outputs.VersionNumber}}.txt -type file
 
         
     # - name: Zip Portable 
