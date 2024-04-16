@@ -42,6 +42,7 @@ if __name__ == "__main__":
     arguments = argumentParser.parse_args()
     print('='.join((
         arguments.key if arguments.alias is None else arguments.alias,
-        '_'.join(get_ini_value(
-            arguments.path, arguments.section, arguments.key).split())
+        get_ini_value(arguments.path, arguments.section, arguments.key)
+        # '_'.join(get_ini_value(
+        #     arguments.path, arguments.section, arguments.key).split())
     )))
