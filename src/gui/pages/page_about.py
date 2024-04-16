@@ -4,16 +4,12 @@
 # https://docs.python.org/3.8/library/logging.html
 import logging
 #
-# Object oriented path handling.
-# https://docs.python.org/3/library/pathlib.html
-from pathlib import Path
-#
 # Tcl/Tk user interface module.  
 # https://docs.python.org/3/library/tkinter.html
 # https://tkdocs.com/tutorial/text.html
 from tkinter import Text
-from tkinter.ttk import Frame, Label
-from tkinter.font import Font, families as font_families
+from tkinter.ttk import Label
+from tkinter.font import Font #, families as font_families
 #
 # Browser launcher module.
 # https://docs.python.org/3/library/webbrowser.html
@@ -72,17 +68,19 @@ def add_address_tags(pageAbout, addresses):
     # TOTH Underlining https://stackoverflow.com/a/44890599/7657675
     pageAbout.text.tag_configure("link", underline=True, foreground="#0000EE")
 
-    for address in addresses: add_address_tag(pageAbout, address)
+    for address in addresses:
+        add_address_tag(pageAbout, address)
 
     return addressTags
 
 def tags_for(address):
     try:
         return ("link", addressTags[address]['tag'])
-    except KeyError as keyError: raise ValueError(
-        "Address hasn't been registered."
-        f' Add add_address_tag(pageAbout,"{address}")'
-    ) from keyError
+    except KeyError as keyError:
+        raise ValueError(
+            "Address hasn't been registered."
+            f' Add add_address_tag(pageAbout,"{address}")'
+        ) from keyError
 
 class PageAbout(SafeDisposableFrame):
     hoverCursor = "hand2"
