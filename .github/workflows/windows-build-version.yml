@@ -54,31 +54,6 @@ jobs:
       # Convenience variable with a shorter name.
       VersionNumber: ${{needs.check.outputs.VersionNumber}}
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Freeze Installer
-      run: |
-        pyinstaller build.spec
-    - name: Build Installer
-      run: |
-        iscc installer.iss
-    - name: Freeze Portable
-      run: |
-        pyinstaller --distpath dist-portable build-portable.spec
-    - name: Zip Portable 
-      shell: pwsh
-      run: |
-        Copy-Item -Path assets -Destination dist-portable\ -Recurse
-        Copy-Item -Path configs -Destination dist-portable\ -Recurse
-        Compress-Archive -Path dist-portable -DestinationPath \
-          FaceCommander-Portable-$Env:VersionNumber".zip"
     - name: Create tag
       id: create_tag
       uses: actions/github-script@v7
@@ -94,7 +69,32 @@ jobs:
     - name: Demo version number
       run: |
         New-Item delme-env-$Env:VersionNumber".txt" -type file
-
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    # - name: Freeze Installer
+    #   run: |
+    #     pyinstaller build.spec
+    # - name: Build Installer
+    #   run: |
+    #     iscc installer.iss
+    # - name: Freeze Portable
+    #   run: |
+    #     pyinstaller --distpath dist-portable build-portable.spec
+    # - name: Zip Portable 
+    #   shell: pwsh
+    #   run: |
+    #     Copy-Item -Path assets -Destination dist-portable\ -Recurse
+    #     Copy-Item -Path configs -Destination dist-portable\ -Recurse
+    #     Compress-Archive `
+    #      -Path dist-portable `
+    #      -DestinationPath FaceCommander-Portable-$Env:VersionNumber".zip"
     # - name: release
     #   uses: softprops/action-gh-release@v1
     #   with:
