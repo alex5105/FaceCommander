@@ -31,9 +31,9 @@ jobs:
         python-version: ["3.10"]
     outputs:
       # TOTH https://yamlchecker.com/
-      VersionNumber: >
+      VersionNumber:
         ${{ steps.get_version_number.outputs.VersionNumber }}
-      VersionNumberSpaceless: >
+      VersionNumberSpaceless:
         ${{ steps.get_version_number.outputs.VersionNumberSpaceless }}
     steps:
     - uses: actions/checkout@v3
