@@ -1,8 +1,13 @@
 on:
+  # Make it appear in the GitHub web user interface, if this workflow is in the
+  # default branch, main.
   workflow_dispatch:
   push:
+    # Trigger workflow if the version number is changed or if the workflow
+    # itself is changed.
     paths:
       - 'assets/Version.ini'
+      - '.github/workflows/windows-build-version.yml'
 
 permissions:
   contents: write
@@ -16,7 +21,6 @@ permissions:
 #
 # And see the reference documentation here.
 # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
-
 
 jobs:
 
@@ -51,33 +55,44 @@ jobs:
     runs-on: windows-latest
     needs: check
     env:
-      # Convenience variable with a shorter name.
+      # Convenience variables with shorter names. Environment variables cannot
+      # be specified in terms of other environment variables.
       VersionNumber: ${{needs.check.outputs.VersionNumber}}
+      VersionTag: v${{needs.check.outputs.VersionNumber}}
     steps:
     - name: Create tag
+      # TOTH Create a tag with GitHub Script
+      # https://stackoverflow.com/a/64479344/7657675
+      # Use environment variables https://stackoverflow.com/a/63485275/7657675
+
+
+
+      #
+      # This step fails if the tag exists already, which is intentional.
       id: create_tag
       uses: actions/github-script@v7
       with:
-        # https://stackoverflow.com/a/64479344/7657675
         script: |
           github.rest.git.createRef({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            ref: "refs/tags/v${{needs.check.outputs.VersionNumber}}",
+            ref: "refs/tags/${{env.VersionTag}}",
             sha: context.sha
           })
-    - name: Demo version number
+    - name: Demo version number and PowerShell line continuation
       run: |
-        New-Item delme-env-$Env:VersionNumber".txt" -type file
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        New-Item `
+          delme-env-$Env:VersionNumber".txt" `
+          -type file
+    # - uses: actions/checkout@v3
+    # - name: Set up Python 3.10
+    #   uses: actions/setup-python@v3
+    #   with:
+    #     python-version: "3.10"
+    # - name: Install dependencies
+    #   run: |
+    #     python -m pip install --upgrade pip
+    #     pip install -r requirements.txt
     # - name: Freeze Installer
     #   run: |
     #     pyinstaller build.spec
@@ -99,7 +114,8 @@ jobs:
     #   uses: softprops/action-gh-release@v1
     #   with:
     #     files: |
-    #       Output/FaceCommander-Installer-v${{needs.check.outputs.VersionNumber}}.exe
+    #       Output/FaceCommander-Installer-
+    # v${{needs.check.outputs.VersionNumber}}.exe
     #       FaceCommander-Portable-v${{needs.check.outputs.VersionNumber}}.zip
     #     name: v${{needs.check.outputs.VersionNumber}}
     #     draft: true
