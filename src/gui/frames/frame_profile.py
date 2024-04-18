@@ -63,13 +63,12 @@ class FrameProfileItems(SafeDisposableScrollableFrame):
         self.set_div_selected(self.divs[div_id])
 
     def load_initial_profiles(self):
-        """Create div according to profiles in config"""
-        profile_names = ConfigManager().list_profile()
-
+        """Create div according to profiles in config
+        """
         divs = {}
-        for row, profile_name in enumerate(profile_names):
+        for row, name in enumerate(ConfigManager().profileNames):
             div_id = str(row) + str(hex(int(time.time() * 1000)))[2:]
-            div = self.create_div(row, div_id, profile_name)
+            div = self.create_div(row, div_id, name)
             div["wrap_label"].grid()
 
             # Random unique div id
@@ -176,7 +175,7 @@ class FrameProfileItems(SafeDisposableScrollableFrame):
 
         # Check if folders same as divs
         name_list = [div["profile_name"] for _, div in self.divs.items()]
-        if ConfigManager().list_profile() == name_list:
+        if ConfigManager().profileNames == name_list:
             return
         logger.info("Profile directory changed, reload...")
 

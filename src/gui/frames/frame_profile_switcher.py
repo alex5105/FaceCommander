@@ -62,14 +62,13 @@ class ItemProfileSwitcher(SafeDisposableFrame):
         )
 
     def load_initial_profiles(self):
-        """Create div according to profiles in config"""
-        profile_names = ConfigManager().list_profile()
-
+        """Create div according to profiles in config
+        """
         divs = {}
         row = 0
-        for profile_name in profile_names:
+        for name in ConfigManager().profileNames:
             div_id = random_name(row)
-            div = self.create_div(row, div_id, profile_name)
+            div = self.create_div(row, div_id, name)
             div["wrap_label"].grid()
 
             # Random unique div id
@@ -142,11 +141,11 @@ class ItemProfileSwitcher(SafeDisposableFrame):
         name_list.remove("Manage Profiles")
         name_list.remove("Add Profile")
 
-        if set(ConfigManager().list_profile()) == set(name_list):
+        if set(ConfigManager().profileNames) == set(name_list):
             return
         logger.info(
-            f"Profile directory changed {ConfigManager().profiles} != {name_list}, reload..."
-        )
+            "Profile directory changed "
+            f"{ConfigManager().profileNames} != {name_list}, reload...")
 
         # Delete all divs and re-create
         self.clear_divs()
@@ -358,7 +357,7 @@ class FrameProfileSwitcher:
         # Custom border
         self.float_window.configure(highlightthickness=0, bd=0)
 
-        n_rows = len(ConfigManager().list_profile()) + 2
+        n_rows = len(ConfigManager().profileNames) + 2
         self.float_window.geometry(
             f"{PROFILE_ITEM_SIZE[0]}x{PROFILE_ITEM_SIZE[1]*n_rows+EXTEND_PAD}+{POPUP_OFFSET[0]}+{POPUP_OFFSET[1]}"
         )
@@ -389,7 +388,7 @@ class FrameProfileSwitcher:
         shift_y = self.root_window.winfo_rooty()
 
         # Popup
-        n_rows = len(ConfigManager().profiles) + 2
+        n_rows = len(ConfigManager().profileNames) + 2
 
         self.float_window.geometry(
             f"{PROFILE_ITEM_SIZE[0]}x{PROFILE_ITEM_SIZE[1]*n_rows+EXTEND_PAD}+{POPUP_OFFSET[0]+shift_x}+{POPUP_OFFSET[1]+shift_y}"
