@@ -1,27 +1,55 @@
+# Standard library imports, in alphabetic order.
+#
+# Logging module.
+# https://docs.python.org/3/library/logging.html
 import logging
-import sys
-import os
+#
+# Object oriented path handling.
+# https://docs.python.org/3/library/pathlib.html
+from pathlib import Path
+#
+# Operating system module, used to get standard output.
+# https://docs.python.org/3/library/sys.html
+from sys import stdout
+#
+# PIP modules, in alphabetic order.
+#
+# https://customtkinter.tomschimansky.com/documentation/
 import customtkinter
-
+#
+# https://platformdirs.readthedocs.io/en/latest/api.html
+from platformdirs import user_data_dir
+#
+# Local imports.
+#
 from src.gui import MainGui
 from src.pipeline import Pipeline
 from src.task_killer import TaskKiller
 
-FORMAT = "%(asctime)s %(levelname)s %(name)s: %(funcName)s: %(message)s"
+def app_data_root():
+    path = Path(user_data_dir(appname="FaceCommander", appauthor="AceCentre"))
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+    except FileExistsError as exception:
+        # For details of why this exception is raised see the reference
+        # documentation here.
+        # https://docs.python.org/3/library/pathlib.html#pathlib.Path.mkdir
+        raise RuntimeError(
+            "Non-directory found where application data directory is expected."
+            f' {path}'
+        ) from exception
+    
+    return path
 
-log_path = os.environ['USERPROFILE']+'\FaceCommander'
-if not os.path.isdir(log_path):
-    os.mkdir(log_path)
-
-logging.basicConfig(
-    format=FORMAT,
-    level=logging.INFO,
-    handlers=[
-        logging.FileHandler(log_path + "\log.txt", mode="w"),
-        logging.StreamHandler(sys.stdout),
-    ],
-)
-
+def configure_logging(appDataRoot):
+    logging.basicConfig(
+        format=r"%(asctime)s %(levelname)s %(name)s: %(funcName)s: %(message)s",
+        level=logging.INFO,
+        handlers=(
+            logging.FileHandler(appDataRoot / 'log.txt', mode="w"),
+            logging.StreamHandler(stdout)
+        )
+    )
 
 class MainApp(MainGui, Pipeline):
     def __init__(self, tk_root):
@@ -51,11 +79,12 @@ class MainApp(MainGui, Pipeline):
 
 
 if __name__ == "__main__":
+    configure_logging(app_data_root())
+
     tk_root = customtkinter.CTk()
 
     logging.info("Starting main app.")
     TaskKiller().start()
-
     main_app = MainApp(tk_root)
     main_app.tk_root.mainloop()
 
