@@ -64,12 +64,10 @@ class ItemProfileEditor(SafeDisposableScrollableFrame):
     def load_initial_profiles(self):
         """Create div according to profiles in config
         """
-        profile_names = ConfigManager().list_profile()
-
         divs = {}
-        for row, profile_name in enumerate(profile_names):
+        for row, name in enumerate(ConfigManager().profileNames):
             div_id = random_name(row)
-            div = self.create_div(row, div_id, profile_name)
+            div = self.create_div(row, div_id, name)
             div["wrap_label"].grid()
 
             # Random unique div id
@@ -112,9 +110,7 @@ class ItemProfileEditor(SafeDisposableScrollableFrame):
         # Check if folders same as divs
         name_list = [div["profile_name"] for _, div in self.divs.items()]
 
-        
-
-        if set(ConfigManager().list_profile()) == set(name_list):
+        if set(ConfigManager().profileNames) == set(name_list):
             return
         logger.info("Profile directory changed, reload...")
 
@@ -187,7 +183,7 @@ class ItemProfileEditor(SafeDisposableScrollableFrame):
         ConfigManager().remove_profile(div["profile_name"])
 
         # If user remove an active profile, roll back to default
-        if div["profile_name"] == ConfigManager().curr_profile_name.get():
+        if div["profile_name"] == ConfigManager().current_profile_name.get():
             logger.warning("Removing active profile, rollback to default")
 
             ConfigManager().switch_profile(BACKUP_PROFILE_NAME)
