@@ -17,39 +17,17 @@ from sys import stdout
 # https://customtkinter.tomschimansky.com/documentation/
 import customtkinter
 #
-# https://platformdirs.readthedocs.io/en/latest/api.html
-from platformdirs import user_data_dir
-#
 # Local imports.
 #
+from src.app import App
 from src.gui import MainGui
 from src.pipeline import Pipeline
 from src.task_killer import TaskKiller
 
-def app_data_root():
-    path = Path(user_data_dir(appname="FaceCommander", appauthor="AceCentre"))
-    try:
-        path.mkdir(parents=True, exist_ok=True)
-    except FileExistsError as exception:
-        # For details of why this exception is raised see the reference
-        # documentation here.
-        # https://docs.python.org/3/library/pathlib.html#pathlib.Path.mkdir
-        raise RuntimeError(
-            "Non-directory found where application data directory is expected."
-            f' {path}'
-        ) from exception
-    
-    return path
+LOG_FORMAT = r"%(asctime)s %(levelname)s %(name)s: %(funcName)s: %(message)s"
+LOG_LEVEL = logging.INFO
 
-def configure_logging(appDataRoot):
-    logging.basicConfig(
-        format=r"%(asctime)s %(levelname)s %(name)s: %(funcName)s: %(message)s",
-        level=logging.INFO,
-        handlers=(
-            logging.FileHandler(appDataRoot / 'log.txt', mode="w"),
-            logging.StreamHandler(stdout)
-        )
-    )
+logger = logging.getLogger(__name__)
 
 class MainApp(MainGui, Pipeline):
     def __init__(self, tk_root):
@@ -77,13 +55,36 @@ class MainApp(MainGui, Pipeline):
         # Completely close this process
         TaskKiller().exit()
 
+def create_app_data_root():
+    try:
+        App().dataRoot.mkdir(parents=True, exist_ok=True)
+    except FileExistsError as exception:
+        # For details of why this exception is raised see the reference
+        # documentation here.
+        # https://docs.python.org/3/library/pathlib.html#pathlib.Path.mkdir
+        raise RuntimeError(
+            "Non-directory found where application data directory is expected."
+            f' {App().dataRoot}'
+        ) from exception
+
+def start_logging():
+    logging.basicConfig(
+        format=LOG_FORMAT, level=LOG_LEVEL, handlers=(
+            logging.FileHandler(App().logPath, mode="w"),
+            logging.StreamHandler(stdout)
+        )
+    )
+    logger.info(
+        f'Installation root "{App().installationRoot}".'
+        f' Application data root "{App().dataRoot}".')
 
 if __name__ == "__main__":
-    configure_logging(app_data_root())
+    create_app_data_root()
+    start_logging()
 
     tk_root = customtkinter.CTk()
 
-    logging.info("Starting main app.")
+    logger.info("Starting main app.")
     TaskKiller().start()
     main_app = MainApp(tk_root)
     main_app.tk_root.mainloop()
