@@ -1,6 +1,7 @@
 import logging
 import customtkinter
 
+from src.app import App
 from src.gui import frames
 from src.config_manager import ConfigManager
 from src.controllers import Keybinder, MouseController
@@ -21,7 +22,7 @@ class MainGui():
         self.tk_root = tk_root
 
         self.tk_root.geometry("1024x800")
-        self.tk_root.title(f"FaceCommander {ConfigManager().version}")
+        self.tk_root.title(" ".join((App().name, App().version)))
         self.tk_root.iconbitmap("assets/images/icon.ico")
         self.tk_root.resizable(width=True, height=True)
 
