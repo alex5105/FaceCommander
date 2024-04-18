@@ -11,3 +11,7 @@ pygrabber;  sys_platform == 'win32'
 pyinstaller==5.11.0
 Pillow==10.1.0
 numpy==1.26.2
+
+# Library with a cross-platform interface for determining where to store app
+# data, see https://pypi.org/project/platformdirs/
+platformdirs==4.2.0
