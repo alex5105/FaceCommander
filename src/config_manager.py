@@ -17,44 +17,24 @@ from pathlib import Path
 # https://docs.python.org/3/library/shutil.html
 import shutil
 #
-# PIP modules.
-#
-# https://platformdirs.readthedocs.io/en/latest/api.html
-from platformdirs import user_data_dir
-#
 # Local imports.
 #
+from src.app import App
 from src.singleton_meta import Singleton
-from src.task_killer import TaskKiller
 from src.utils.Trigger import Trigger
-from src.utils.readini import get_ini_value
 
-APP_NAME = "FaceCommander"
-APP_AUTHOR = "AceCentre"
-
-PROFILES_SUBDIRECTORY = ("configs",)
-CURRENT_PROFILE_FILE = PROFILES_SUBDIRECTORY + ("current.json",)
+CURRENT_PROFILE_FILENAME = "current.json"
 CURSOR_FILENAME = "cursor.json"
 MOUSE_FILENAME = "mouse_bindings.json"
 KEYBOARD_FILENAME = "keyboard_bindings.json"
 BACKUP_PROFILE = "default"
 
-VERSION_INI_FILE = ("assets", "Version.ini")
-VERSION_INI_SECTION = "Release"
-VERSION_INI_KEY = "VersionNumber"
-
 logger = logging.getLogger("ConfigManager")
 
 class ConfigManager(metaclass=Singleton):
     def __init__(self):
-        self._appInstallationRoot = Path(__file__).parents[1]
-        logger.info(
-            "Initialising ConfigManager singleton."
-            f' Installation root "{self.appInstallationRoot}".')
-        self._appDataRoot = None
-        self._profilesDirectory = None
+        logger.info("Initialising ConfigManager singleton.")
         self._currentProfilePath = None
-        self._version = None
         self._profileNames = None
 
         self.tempKeyboardBindings = None
@@ -74,48 +54,25 @@ class ConfigManager(metaclass=Singleton):
         self.is_started = False
     
     @property
-    def appInstallationRoot(self):
-        return self._appInstallationRoot
-    
-    @property
     def currentProfilePath(self):
         if self._currentProfilePath is None:
             self._currentProfilePath = Path(
-                self.appDataRoot, *CURRENT_PROFILE_FILE)
+                App().profilesDirectory, CURRENT_PROFILE_FILENAME)
         return self._currentProfilePath
     
-    @property
-    def appDataRoot(self):
-        if self._appDataRoot is None:
-            self._appDataRoot = Path(user_data_dir(
-                appname=APP_NAME, appauthor=APP_AUTHOR))
-        return self._appDataRoot
-    
-    @property
-    def version(self):
-        if self._version is None:
-            self._version = get_ini_value(
-                Path(self.appInstallationRoot, *VERSION_INI_FILE),
-                VERSION_INI_SECTION, VERSION_INI_KEY)
-        return self._version
-
     def _get_profiles_directory(self, *name):
-        if self._profilesDirectory is None:
-            self._profilesDirectory = Path(
-                self.appDataRoot, *PROFILES_SUBDIRECTORY)
-        path = self._profilesDirectory
+        path = App().profilesDirectory
         if path.exists():
             if not path.is_dir():
                 raise RuntimeError(
                     "Non-directory found where profiles directory is expected."
                     f' {path}')
         else:
-            builtIn = Path(self.appInstallationRoot, *PROFILES_SUBDIRECTORY)
             logger.info(
                 "Creating profiles directory by copying built-in profiles."
                 f' Profiles directory "{path}".'
-                f' Built-in profiles "{builtIn}".')
-            shutil.copytree(builtIn, path)
+                f' Built-in profiles "{App().builtInProfilesDirectory}".')
+            shutil.copytree(App().builtInProfilesDirectory, path)
         return Path(path, *name)
 
     def start(self):
