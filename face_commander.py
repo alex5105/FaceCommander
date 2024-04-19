@@ -4,10 +4,6 @@
 # https://docs.python.org/3/library/logging.html
 import logging
 #
-# Object oriented path handling.
-# https://docs.python.org/3/library/pathlib.html
-from pathlib import Path
-#
 # Operating system module, used to get standard output.
 # https://docs.python.org/3/library/sys.html
 from sys import stdout
