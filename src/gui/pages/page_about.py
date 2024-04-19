@@ -102,9 +102,10 @@ class PageAbout(SafeDisposableFrame):
         # Handy code to log all font families.
         # logger.info(font_families())
 
-        # Create the about page as a ScrolledText widget. The text won't be
-        # editable but that can't be set here because the widget will ignore the
-        # text.insert() method. Instead editing is disabled after the insert().
+        # Create the about page content as a ScrolledText widget. The text won't
+        # be editable but that can't be set here because the widget will ignore
+        # the text.insert() method. Instead editing is disabled after the
+        # insert().
         #
         # If the height were set here in the constructor, or in the `configure`
         # method, then the value is interpreted as a number of lines.  
