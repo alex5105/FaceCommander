@@ -3,7 +3,6 @@ import customtkinter
 
 from src.app import App
 from src.gui import frames
-from src.config_manager import ConfigManager
 from src.controllers import Keybinder, MouseController
 from src.gui.pages import (
     PageSelectCamera, PageCursor, PageSelectGestures, PageKeyboard, PageAbout)
