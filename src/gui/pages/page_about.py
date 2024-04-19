@@ -7,8 +7,12 @@ import logging
 # Tcl/Tk user interface module.  
 # https://docs.python.org/3/library/tkinter.html
 # https://tkdocs.com/tutorial/text.html
-from tkinter import Text
+#
+# TOTH  
+# -   https://www.pythontutorial.net/tkinter/tkinter-event-binding/
+# -   https://www.pythontutorial.net/tkinter/tkinter-place/
 from tkinter.ttk import Label
+from tkinter.scrolledtext import ScrolledText
 from tkinter.font import Font #, families as font_families
 #
 # Browser launcher module.
@@ -22,6 +26,7 @@ import webbrowser
 #
 from src.app import App
 from src.gui.frames.safe_disposable_frame import SafeDisposableFrame
+from src.update_manager import UpdateManager
 
 logger = logging.getLogger("PageAbout")
 def log_path(description, path): logger.info(" ".join((
@@ -87,12 +92,7 @@ class PageAbout(SafeDisposableFrame):
 
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=0)
-        self.grid_columnconfigure(0, weight=1)
         self.is_active = False
-        self.grid_propagate(False)
 
         # Create font objects for the fonts used on this page.
         font24 = Font(family="Google Sans", size=24)
@@ -102,13 +102,18 @@ class PageAbout(SafeDisposableFrame):
         # Handy code to log all font families.
         # logger.info(font_families())
 
-        # Create the about page as a Text widget. The text won't be editable but
-        # that can't be set here because the widget will ignore the
+        # Create the about page as a ScrolledText widget. The text won't be
+        # editable but that can't be set here because the widget will ignore the
         # text.insert() method. Instead editing is disabled after the insert().
-        self.text = Text(
-            self, wrap="word", borderwidth=0, font=font12, spacing1=20
-            , height=10 # height value has to be guessed it seems.
-        ) 
+        #
+        # If the height were set here in the constructor, or in the `configure`
+        # method, then the value is interpreted as a number of lines.  
+        # TOTH
+        # https://stackoverflow.com/questions/14887610/specify-the-dimensions-of-a-tkinter-text-box-in-pixels#comment125318354_52055199
+        # Setting it in the `place` method instead will interpret it as a number
+        # of pixels, which is what's required here.
+        self.text = ScrolledText(
+            self, wrap="word", borderwidth=0, font=font12, spacing1=15) 
 
         # Create tags for styling the page content.
         self.text.tag_configure("h1", font=font24)
@@ -118,40 +123,35 @@ class PageAbout(SafeDisposableFrame):
         # only way that event handlers can be bound.
         add_address_tags(self, (
             "https://acecentre.org.uk",
-            str(App().repositoryURL),
+            App().repositoryURL,
             "https://www.flaticon.com/free-icons/eye",
             "https://github.com/acidcoke/Grimassist/",
             "https://github.com/google/project-gameface"
         ) )
         logger.info(f'addressTags{addressTags}')
 
-        # At time of coding, the app windows seems to be fixed size and the
-        # about page content fits in it. So there's no need for a scroll bar. If
-        # that changes then uncomment this code to add a scroll bar.
-        #
-        # from tkinter.ttk import Scrollbar
-        # self.scrollY = Scrollbar(
-        #     self, orient = 'vertical', command = self.text.yview)
-        # self.text['yscrollcommand'] = self.scrollY.set
-        # self.scrollY.grid(column = 1, row = 0, sticky = 'ns')
-
-        self.text.grid(row=0, column=0, padx=0, pady=5, sticky="new")
+        # Fix the widget to the top of the frame. The height is set later, in
+        # the configuration change handler. That handler will be invoked once
+        # when the page is rendered, as well as being invoked every time the
+        # page changes size.
+        self.text.place(x=0, y=0, relwidth=1, anchor='nw')
 
         # The argument tail is an alternating sequence of texts and tag lists.
         # If the text is to be set in the default style then an empty tag list
         # () is given.
         self.text.insert("1.0"
         , f"About {App().name}\n", "h1"
-        , f"Version {App().version}\n"
-        "Control and move the pointer using head movements and facial"
+        , "Control and move the pointer using head movements and facial"
         " gestures.\nDisclaimer: This software isn't intended for medical"
         f" use.\n{App().name} is an ", (),
-        "Open Source project", tags_for(
-            str(App().repositoryURL)),
+        "Open Source project", tags_for(App().repositoryURL),
         " developed by the Ace Centre. Visit ", (),
         "our website", tags_for("https://acecentre.org.uk"),
         " to find out more about how we provide support for people with"
         " complex communications difficulties.\n", ()
+        , "Releases\n", "h2"
+        , f"Version {App().version}\n", ()
+        , f"Last check for updates {self.last_fetch()}.\n", ()
         , "Attribution\n", "h2"
         , "Blink graphics in the user interface are based on ", ()
         , "Eye icons created by Kiranshastry - Flaticon", tags_for(
@@ -170,7 +170,7 @@ class PageAbout(SafeDisposableFrame):
         # seem like that could be done by adding a configuration to the tag,
         # which is how links are underlined. However, it seems like that doesn't
         # work and the cursor cannot be configured at the tag level. The
-        # solution is to configure and reconfigure it dynmically, at the widget
+        # solution is to configure and reconfigure it dynamically, at the widget
         # level, in the hover handlers.
         #
         # Discover the default cursor configuration here and store it. The value
@@ -179,25 +179,44 @@ class PageAbout(SafeDisposableFrame):
 
         # Label to display the address of a link when it's hovered over.
         #
-        # TBD make it transparent. For now it takes the background colour of the
-        # text control, above.
+        # It takes the background colour of the text control, above. It starts
+        # out hidden.
         self.hoverLabel = Label(
             self, text="", font=font12, background=self.text['background'])
-        self.hoverLabel.grid(row=1, column=0, sticky="sw")
+        self.hoverLabel.place_forget()
+
+        # Register a listener for changes to the size of the frame.
+        self.bind("<Configure>", self.handle_configure)
+
+    def handle_configure(self, event):
+        self.text.place(
+            height=self.winfo_height()
+            # This subtraction would reserve space for the label, and the scroll
+            # bar would end a little higher too.  
+            # - self.hoverLabel.winfo_height()
+        )
+    
+    def last_fetch(self):
+        lastFetch = UpdateManager().lastFetch
+        return "never" if lastFetch is None else lastFetch.strftime("%c")
 
     def hover_enter(self, address, event):
         logger.info(f'hover({address}, {event}) {event.type}')
+        self.text.configure(cursor=self.hoverCursor)
         # TOTH how to set the text of a label.
         # https://stackoverflow.com/a/17126015/7657675
         self.hoverLabel.configure(text=address)
-        self.text.configure(cursor=self.hoverCursor)
+        # Put the hover label in the bottom left corner of the page.
+        self.hoverLabel.place(x=0, rely=1, anchor='sw')
 
     def hover_leave(self, address, event):
         logger.info(f'hover({address}, {event}) {event.type}')
+        self.text.configure(cursor=self.initialCursor)
         # TOTH how to set the text of a label.
         # https://stackoverflow.com/a/17126015/7657675
         self.hoverLabel.configure(text="")
-        self.text.configure(cursor=self.initialCursor)
+        # Make the hover label disappear.
+        self.hoverLabel.place_forget()
 
     def open_in_browser(self, address, event):
         logger.info(f'open_in_browser({address}, {event})')
