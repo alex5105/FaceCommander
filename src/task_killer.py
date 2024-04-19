@@ -24,6 +24,9 @@ class TaskKiller(metaclass=Singleton):
             utils.install_fonts("assets/fonts")
 
             # Start singletons
+            from src.update_manager import UpdateManager
+            UpdateManager().start()
+
             from src.config_manager import ConfigManager
             ConfigManager().start()
 
