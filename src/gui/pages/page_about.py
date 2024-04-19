@@ -1,7 +1,7 @@
-# Standard library imports.
+# Standard library imports, in alphabetic order.
 #
 # Logging module.
-# https://docs.python.org/3.8/library/logging.html
+# https://docs.python.org/3/library/logging.html
 import logging
 #
 # Tcl/Tk user interface module.  
@@ -15,13 +15,13 @@ from tkinter.font import Font #, families as font_families
 # https://docs.python.org/3/library/webbrowser.html
 import webbrowser
 #
-# PIP modules.
+# PIP modules would go here.
 #
 #
 # Local imports.
 #
+from src.app import App
 from src.gui.frames.safe_disposable_frame import SafeDisposableFrame
-from src.config_manager import ConfigManager
 
 logger = logging.getLogger("PageAbout")
 def log_path(description, path): logger.info(" ".join((
@@ -118,7 +118,7 @@ class PageAbout(SafeDisposableFrame):
         # only way that event handlers can be bound.
         add_address_tags(self, (
             "https://acecentre.org.uk",
-            "https://github.com/AceCentre/FaceCommander",
+            str(App().repositoryURL),
             "https://www.flaticon.com/free-icons/eye",
             "https://github.com/acidcoke/Grimassist/",
             "https://github.com/google/project-gameface"
@@ -141,16 +141,15 @@ class PageAbout(SafeDisposableFrame):
         # If the text is to be set in the default style then an empty tag list
         # () is given.
         self.text.insert("1.0"
-        , "About FaceCommander\n", "h1"
-        , f"Version {ConfigManager().version}\n"
+        , f"About {App().name}\n", "h1"
+        , f"Version {App().version}\n"
         "Control and move the pointer using head movements and facial"
         " gestures.\nDisclaimer: This software isn't intended for medical"
-        " use.\nFaceCommander is an ", (),
+        f" use.\n{App().name} is an ", (),
         "Open Source project", tags_for(
-            "https://github.com/AceCentre/FaceCommander"),
+            str(App().repositoryURL)),
         " developed by the Ace Centre. Visit ", (),
-        "our website", tags_for(
-            "https://acecentre.org.uk"),
+        "our website", tags_for("https://acecentre.org.uk"),
         " to find out more about how we provide support for people with"
         " complex communications difficulties.\n", ()
         , "Attribution\n", "h2"
@@ -206,6 +205,8 @@ class PageAbout(SafeDisposableFrame):
 
     def enter(self):
         super().enter()
-
         # Next line would opens the About file in the browser.
         # open_in_browser(aboutHTML.as_uri(), None)
+
+    def refresh_profile(self):
+        pass
