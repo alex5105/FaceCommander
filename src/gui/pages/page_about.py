@@ -225,6 +225,16 @@ class PageAbout(SafeDisposableFrame):
 
     def enter(self):
         super().enter()
+        def written(*args):
+            logger.info(
+                f'written({args}) {UpdateManager().lastFetchMessage.get()}')
+        UpdateManager().lastFetchMessage.trace('w', written)
+        logger.info(
+            f'releases_retrieval() {UpdateManager().releases_retrieval(True)}')
+
+
+
+
         # Next line would opens the About file in the browser.
         # open_in_browser(aboutHTML.as_uri(), None)
 
