@@ -48,6 +48,10 @@ class App(metaclass=Singleton):
     def __init__(self):
         self._name = APP_NAME
 
+        # Diagnostic command line options.
+        self._userAgentHeader = True
+
+        # Top-level paths.
         self._installationRoot = Path(__file__).parents[1]
         self._dataRoot = None
 
@@ -59,7 +63,18 @@ class App(metaclass=Singleton):
         self._updateDirectory = None
 
         self._repositoryURL = urlunsplit(REPOSITORY_UNSPLIT)
-        self._releasesAPI = urlsplit(urlunsplit(RELEASES_API_UNSPLIT))
+        self._releasesAPI = urlunsplit(RELEASES_API_UNSPLIT)
+
+    # Properties for command line switches.
+
+    @property
+    def userAgentHeader(self):
+        return self._userAgentHeader
+    @userAgentHeader.setter
+    def userAgentHeader(self, userAgentHeader):
+        self._userAgentHeader = userAgentHeader
+
+    # End of command line switches.
 
     @property
     def name(self):
