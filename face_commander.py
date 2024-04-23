@@ -1,12 +1,29 @@
+"""\
+Face Commander.
+Control and move the pointer using head movements and facial gestures.
+"""
 # Standard library imports, in alphabetic order.
+#
+# Command line arguments module. Command line arguments are used for diagnostic
+# options.  
+# https://docs.python.org/3/library/argparse.html
+import argparse
 #
 # Logging module.
 # https://docs.python.org/3/library/logging.html
 import logging
 #
-# Operating system module, used to get standard output.
+# Object oriented path handling.
+# https://docs.python.org/3/library/pathlib.html
+from pathlib import Path
+#
+# Operating system module, used to get the command line and standard output.
 # https://docs.python.org/3/library/sys.html
-from sys import stdout
+from sys import argv, stdout, executable as sys_executable
+#
+# Module for text dedentation. Only used for --help description.
+# https://docs.python.org/3/library/textwrap.html
+import textwrap
 #
 # PIP modules, in alphabetic order.
 #
@@ -75,6 +92,29 @@ def start_logging():
         f' Application data root "{App().dataRoot}".')
 
 if __name__ == "__main__":
+    cli={
+        'description': textwrap.dedent(__doc__),
+        'formatter_class': argparse.RawDescriptionHelpFormatter,
+        'allow_abbrev': False
+    }
+    progPath = Path(__file__)
+    for index, arg in enumerate(argv):
+        try:
+            if progPath.samefile(arg):
+                # TOTH https://stackoverflow.com/a/54443527/7657675
+                executable = Path(sys_executable).relative_to(Path.cwd())
+                cli['prog'] = " ".join([str(executable),] + argv[0:index + 1])
+                break
+        except FileNotFoundError:
+            pass
+    argumentParser = argparse.ArgumentParser(**cli)
+    argumentParser.add_argument(
+        '--no-user-agent', dest='userAgentHeader', action='store_false', help=
+        "Don't send a user agent header when fetching release details, which"
+        " causes fetch to fail with HTTP 403."
+    )
+    argumentParser.parse_args(argv[1:], App())
+
     create_app_data_root()
     start_logging()
 
