@@ -56,6 +56,8 @@ class MainApp(MainGui, Pipeline):
     def anim_loop(self):
         try:
             if self.is_active:
+                self.poll_update_state()
+
                 # Run detectors and controllers.
                 self.pipeline_tick()
                 self.tk_root.after(1, self.anim_loop)
@@ -111,8 +113,12 @@ if __name__ == "__main__":
     argumentParser.add_argument(
         '--no-user-agent', dest='userAgentHeader', action='store_false', help=
         "Don't send a user agent header when fetching release details, which"
-        " causes fetch to fail with HTTP 403."
-    )
+        " causes fetch to fail with HTTP 403.")
+    argumentParser.add_argument(
+        '--release-information-delay', dest='releaseInformationDelay'
+        , type=int, help=
+        "Wait for a number of seconds after retrieving each 1kb of release"
+        " information.")
     argumentParser.parse_args(argv[1:], App())
 
     create_app_data_root()
