@@ -5,8 +5,8 @@
 from pathlib import Path
 #
 # URL parsing module.
-# https://docs.python.org/3/library/urllib.parse.html#urllib.parse.urlsplit
-from urllib.parse import urlsplit, urlunsplit
+# https://docs.python.org/3/library/urllib.parse.html#urllib.parse.urlunsplit
+from urllib.parse import urlunsplit
 #
 # Local imports.
 #
@@ -50,6 +50,7 @@ class App(metaclass=Singleton):
 
         # Diagnostic command line options.
         self._userAgentHeader = True
+        self._releaseInformationDelay = 0
 
         # Top-level paths.
         self._installationRoot = Path(__file__).parents[1]
@@ -73,6 +74,13 @@ class App(metaclass=Singleton):
     @userAgentHeader.setter
     def userAgentHeader(self, userAgentHeader):
         self._userAgentHeader = userAgentHeader
+
+    @property
+    def releaseInformationDelay(self):
+        return self._releaseInformationDelay
+    @releaseInformationDelay.setter
+    def releaseInformationDelay(self, releaseInformationDelay):
+        self._releaseInformationDelay = releaseInformationDelay
 
     # End of command line switches.
 
