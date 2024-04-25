@@ -90,9 +90,10 @@ def tags_for(address):
 class PageAbout(SafeDisposableFrame):
     hoverCursor = "hand2"
 
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
+    def __init__(self, tkRoot, updateHost, **kwargs):
+        super().__init__(tkRoot, **kwargs)
         self.is_active = False
+        self._updateHost = updateHost
 
         # Create font objects for the fonts used on this page.
         font24 = Font(family="Google Sans", size=24)
@@ -198,7 +199,7 @@ class PageAbout(SafeDisposableFrame):
         )
     
     def last_fetch(self):
-        lastFetch = UpdateManager().lastFetch
+        lastFetch = None # UpdateManager().lastFetch
         return "never" if lastFetch is None else lastFetch.strftime("%c")
 
     def hover_enter(self, address, event):
@@ -227,12 +228,8 @@ class PageAbout(SafeDisposableFrame):
         super().enter()
         def written(*args):
             logger.info(
-                f'written({args}) {UpdateManager().lastFetchMessage.get()}')
-        UpdateManager().lastFetchMessage.trace('w', written)
-        logger.info(
-            f'releases_retrieval() {UpdateManager().releases_retrieval(True)}')
-
-
+                f'written({args}) {self._updateHost.lastFetchMessage.get()}')
+        self._updateHost.lastFetchMessage.trace('w', written)
 
 
         # Next line would opens the About file in the browser.
