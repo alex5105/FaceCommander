@@ -22,7 +22,10 @@
             "tomoki1207.pdf",
 
             // Plugin to count words in the file or in the selection.
-            "witulski.selection-word-count"
+            "witulski.selection-word-count",
+
+            // Overwrite mode, activated by the Insert key.
+            "DrMerfy.overtype"
         ]
     }
 }
