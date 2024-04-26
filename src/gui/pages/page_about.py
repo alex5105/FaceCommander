@@ -11,7 +11,7 @@ import logging
 # TOTH  
 # -   https://www.pythontutorial.net/tkinter/tkinter-event-binding/
 # -   https://www.pythontutorial.net/tkinter/tkinter-place/
-from tkinter import END
+from tkinter import END, StringVar
 from tkinter.ttk import Label
 from tkinter.scrolledtext import ScrolledText
 from tkinter.font import Font #, families as font_families
@@ -99,6 +99,7 @@ Disclaimer: This software isn't intended for medical use.
             " complex communications difficulties."
         ).paragraph("Releases", "h2"
         ).paragraph(f"Version {App().version}"
+        ).dynamic(self._updateHost.lastFetchMessage
         # , f"Last check for updates {self.last_fetch()}.\n", ()
 
         ).paragraph("Attribution", "h2"
@@ -172,10 +173,10 @@ Disclaimer: This software isn't intended for medical use.
 
     def enter(self):
         super().enter()
-        def written(*args):
-            logger.info(
-                f'written({args}) {self._updateHost.lastFetchMessage.get()}')
-        self._updateHost.lastFetchMessage.trace('w', written)
+        # def written(*args):
+        #     logger.info(
+        #         f'written({args}) {self._updateHost.lastFetchMessage.get()}')
+        # self._updateHost.lastFetchMessage.trace('w', written)
 
 
         # Next line would opens the About file in the browser.
@@ -184,12 +185,60 @@ Disclaimer: This software isn't intended for medical use.
     def refresh_profile(self):
         pass
 
-class Anchor(NamedTuple):
+class Link(NamedTuple):
     tag:str
     address:str
     enter:Callable
     leave:Callable
     click:Callable
+
+class Dynamic(NamedTuple):
+    stub:str
+    start:str
+    finish:str
+    stringVar:StringVar
+    page:PageAbout
+
+    @classmethod
+    def stubbed(cls, stub, stringVar, page):
+        return cls(
+            stub
+            , "-".join((stub, "start"))
+            , "-".join((stub, "finish"))
+            , stringVar
+            , page
+        )
+
+    def getter(self):
+        value = self.stringVar.get()
+        if value is not None and value != "" and not value.endswith("\n"):
+            return value + "\n"
+        return value
+    
+    def setter(self):
+        newText = self.getter()
+        tkText = self.page.text
+        startIndex = tkText.index(self.start)
+        finishIndex = tkText.index(self.finish)
+        initialState = tkText['state']
+        tkText.configure(state='normal')
+        if startIndex != finishIndex:
+            tkText.delete(self.start, self.finish)
+        logger.info(
+            f'{ascii(newText)} {tkText.index(self.start)}'
+            f' {tkText.index(self.finish)}')
+        tkText.insert(self.start, newText, (self.stub,))
+        logger.info(f'{tkText.index(self.start)} {tkText.index(self.finish)}')
+        tkText.mark_set(
+            self.finish,
+            f"{self.stub}.last" if len(newText) > 0 else self.start
+        )
+        logger.info(f'{tkText.index(self.start)} {tkText.index(self.finish)}')
+        tkText.configure(state=initialState)
+
+    def tracer(self, *args):
+        logger.info(f'tracer({args}) "{self.stub}"')
+        self.setter()
 
 class SpannedText:
     def __init__(self, pageAbout):
@@ -205,7 +254,7 @@ class SpannedText:
     def paragraph(self, text, *tags):
         return self.span(text + "\n", *tags)
     
-    def link(self, text, address):
+    def link(self, text, address, *extraTags):
         # Jim initially was using Python lambda expressions for the event
         # handlers. That seemed to result in all tag_bind() calls being
         # overridden to whichever was the last one called. So now lambda
@@ -214,7 +263,7 @@ class SpannedText:
         def _leave(event): self._page.hover_leave(address, event)
         def _click(event): self._page.open_in_browser(address, event)
 
-        anchor = Anchor(
+        anchor = Link(
             f'address{len(self._anchors)}', address, _enter, _leave, _click)
         self._page.text.tag_configure(anchor.tag)
 
@@ -230,5 +279,28 @@ class SpannedText:
         self._page.text.tag_bind(anchor.tag, "<Leave>", anchor.leave)
         self._page.text.tag_bind(anchor.tag, "<1>", anchor.click)
 
-        self._anchors[address] = anchor
-        return self.span(text, self._linkTag, anchor.tag)
+        self._anchors[anchor.tag] = anchor
+        return self.span(text, self._linkTag, anchor.tag, *extraTags)
+
+    def dynamic(self, stringVar):
+        anchor = Dynamic.stubbed(
+            f'anchor{len(self._anchors)}', stringVar, self._page)
+
+        # Marks are set to a position just before the "newline that Tk always
+        # adds at the end of the text."  
+        # See https://tkdocs.com/tutorial/text.html#modifying
+        #
+        # They have left gravity so that subsequent text inserted at END gets
+        # appended after the marks.  
+        # See https://tkdocs.com/tutorial/text.html#marks
+        self._page.text.mark_set(anchor.start, 'end - 1 chars')
+        self._page.text.mark_gravity(anchor.start, 'left')
+        self._page.text.mark_set(anchor.finish, anchor.start)
+        self._page.text.mark_gravity(anchor.finish, 'left')
+
+        self._anchors[anchor.stub] = anchor
+
+        return_ = self.span("")
+        anchor.setter()
+        stringVar.trace('w', anchor.tracer)
+        return return_
