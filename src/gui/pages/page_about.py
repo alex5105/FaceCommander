@@ -76,16 +76,6 @@ class PageAbout(SafeDisposableFrame):
         self.text.tag_configure(
             "link", underline=True, foreground="#0000EE")
 
-        # # Create a tag for every address in the about page. That seems to be the
-        # # only way that event handlers can be bound.
-        # add_address_tags(self, (
-        #     "https://acecentre.org.uk",
-        #     App().repositoryURL,
-        #     "https://www.flaticon.com/free-icons/eye",
-        #     "https://github.com/acidcoke/Grimassist/",
-        #     "https://github.com/google/project-gameface"
-        # ) )
-
         # Fix the widget to the top of the frame. The height is set later, in
         # the configuration change handler. That handler will be invoked once
         # when the page is rendered, as well as being invoked every time the
@@ -109,24 +99,19 @@ Disclaimer: This software isn't intended for medical use.
             " complex communications difficulties."
         ).paragraph("Releases", "h2"
         ).paragraph(f"Version {App().version}"
-        )
-
-
-
-
         # , f"Last check for updates {self.last_fetch()}.\n", ()
-        # , "Attribution\n", "h2"
-        # , "Blink graphics in the user interface are based on ", ()
-        # , "Eye icons created by Kiranshastry - Flaticon", tags_for(
-        #     "https://www.flaticon.com/free-icons/eye")
-        # , ".\nThis software was based on ", ()
-        # , "Grimassist", tags_for(
-        #     "https://github.com/acidcoke/Grimassist/")
-        # , ", itself based on ", ()
-        # , "Google GameFace", tags_for(
-        #     "https://github.com/google/project-gameface")
-        # , ".", ()
-        # )
+
+        ).paragraph("Attribution", "h2"
+        ).span("Blink graphics in the user interface are based on "
+        ).link(
+            "Eye icons created by Kiranshastry - Flaticon"
+            , "https://www.flaticon.com/free-icons/eye"
+        ).span(".\nThis software was based on "
+        ).link("Grimassist", "https://github.com/acidcoke/Grimassist/"
+        ).span(", itself based on "
+        ).link("Google GameFace", "https://github.com/google/project-gameface"
+        ).span(".")
+
         self.text.configure(state='disabled')
 
         # When the pointer hovers over a link, change it to a hand. It might
