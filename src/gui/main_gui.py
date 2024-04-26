@@ -61,6 +61,7 @@ class MainGui():
                                 columnspan=1)
         self.frame_preview.enter()
 
+        # Update state and reflection into tkinter observable Var instances.
         self._updateState = None
         self.lastFetchMessage = StringVar(
             self.tk_root, "Releases information unknown.")
@@ -146,7 +147,8 @@ class MainGui():
         updateState = UpdateManager().state
         if self._updateState is None or updateState != self._updateState:
             logger.info(f"updateState {updateState}.")
-            self.lastFetchMessage.set(updateState.lastFetchMessage)
+            if self.lastFetchMessage.get() != updateState.lastFetchMessage:
+                self.lastFetchMessage.set(updateState.lastFetchMessage)
         self._updateState = updateState
 
     def del_main_gui(self):
