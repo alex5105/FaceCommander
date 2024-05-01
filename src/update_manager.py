@@ -9,6 +9,10 @@ from datetime import datetime
 # https://docs.python.org/3/library/email.utils.html#email.utils.parsedate_to_datetime
 from email.utils import parsedate_to_datetime
 #
+# Support for enumerated constants.
+# https://docs.python.org/3/library/enum.html
+from enum import Enum, auto as enum_auto
+#
 # JSON module.
 # https://docs.python.org/3/library/json.html
 import json
@@ -41,7 +45,7 @@ from time import sleep
 #
 # Type hints module.
 # https://docs.python.org/3/library/typing.html#typing.NamedTuple
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 #
 # PIP modules, in alphabetic order.
 #
@@ -75,6 +79,11 @@ USER_AGENT_HEADER = "User-Agent"
 USER_AGENT_SUFFIX = "-App"
 DATE_HEADER = "Date"
 
+class RetrievingWhat(Enum):
+    NOTHING = enum_auto()
+    RELEASES_INFORMATION = enum_auto()
+    INSTALLER = enum_auto()
+
 class UpdateManager(metaclass=Singleton):
 
     def __init__(self):
@@ -93,17 +102,7 @@ class UpdateManager(metaclass=Singleton):
             self._retrieveThread = None
         self._releasesDataLock = Lock()
 
-        self._stateLock = Lock()
-        with self._stateLock:
-            self._lastFetchDateTime = None
-            self._lastFetchMessage = "Releases information unknown."
-            self._retrievedAmount = 0
-            self._retrievingSize = 0
-            self._installerPath = None
-        # retrievingSize semantics are as follows.
-        # -   Zero if no retrieval is underway.
-        # -   Negative if an indeterminate retrieval is underway.
-        # -   Positive if a determinate retrieval is underway.
+        self._state = LockedState()
 
         self._installerPID = None
 
@@ -111,24 +110,7 @@ class UpdateManager(metaclass=Singleton):
     
     @property
     def state(self):
-        with self._stateLock:
-            return UpdateState(
-                self._lastFetchMessage,
-                self._lastFetchDateTime,
-                self._retrievedAmount,
-                self._retrievingSize,
-                self._installerPath
-            )
-    
-    def _set_retrieval_progress(
-        self, retrievedAmount, retrievingSize=None, installerPath=None
-    ):
-        with self._stateLock:
-            self._retrievedAmount = retrievedAmount
-            if retrievingSize is not None:
-                self._retrievingSize = retrievingSize
-            if installerPath is not None:
-                self._installerPath = installerPath
+        return self._state.get()
 
     @property
     def installerPID(self):
@@ -138,23 +120,20 @@ class UpdateManager(metaclass=Singleton):
         if not self._started:
             self._started = True
             App().updateDirectory.mkdir(parents=True, exist_ok=True)
-            self.update()
+            self.manage()
 
-    def update(self):
-        retrieveReleaseInformation = False
-        # Preceding line might need a CLI override option.
-
-
+    def manage(self, checkNow:Optional[bool] = None):
         with self._releasesDataLock:
-            lastFetch = self._last_fetch_from_releases_files()
-        self._set_last_fetch(lastFetch)
-        if lastFetch is None:
-            retrieveReleaseInformation = True
+            releasesChecked = self._last_fetch_from_releases_files()
+        self._state.set(releasesChecked=releasesChecked)
+        if releasesChecked is None and checkNow is None:
+            # If checkNow is unspecified, and releases have never been checked,
+            # check now. If checkNow:False was specified, don't check now.
+            checkNow = True
 
 
-        # Near here, if retrieveReleaseInformation is False then check how long
-        # ago the last fetch was. If it was far enough in the past then set it
-        # to true.
+        # Near here, if checkNow is False then calculate how long ago the last
+        # fetch was. If it was far enough in the past then set it to true.
 
 
 
@@ -167,7 +146,7 @@ class UpdateManager(metaclass=Singleton):
                 self._retrieveThread.join()
                 self._retrieveThread = None
 
-        if retrieveReleaseInformation:
+        if checkNow:
             with self._startRetrieveLock:
                 if self._retrieveThread is None:
                     self._retrieveThread = Thread(target=self._fetch)
@@ -180,9 +159,7 @@ class UpdateManager(metaclass=Singleton):
                     if self._retrieveThread is None:
                         self._retrieveThread = Thread(
                             target=asset.fetch,
-                            args=(
-                                self._requestAgentHeader,
-                                self._set_retrieval_progress)
+                            args=(self._requestAgentHeader, self._state)
                         )
                         self._retrieveThread.start()
 
@@ -207,30 +184,13 @@ class UpdateManager(metaclass=Singleton):
         
         return None
 
-    def _set_last_fetch(self, lastFetch):
-        '''Release self._stateLock before calling.'''
-        with self._stateLock:
-            self._lastFetchDateTime = lastFetch
-            message = ""
-            if self._lastFetchDateTime is None:
-                message = "Releases information has never been retrieved."
-            else:
-                description = self._lastFetchDateTime.strftime(r"%c")
-                # Near here, could use a timedelta to give a more evocative
-                # message like "5 minutes ago".
-                message = 'Releases information retrieved ' + description + "."
-            logger.info(f'Setting last fetch message "{message}"')
-            self._lastFetchMessage = message
-
-        # self.lastFetchMessage.set(message)
-
     def _fetch(self):
         '''Run as a Thread and don't start more than one.'''
         self._fetch_release_information()
         asset = self._asset_to_download()
         logger.info(f'Asset to download {asset}.')
         if asset is not None:
-            asset.fetch(self._requestAgentHeader, self._set_retrieval_progress)
+            asset.fetch(self._requestAgentHeader, self._state)
 
     def _fetch_release_information(self):
         # References for the request.
@@ -248,14 +208,16 @@ class UpdateManager(metaclass=Singleton):
 
         downloadPath = None
         responseHeaders = None
-        self._set_retrieval_progress(0, -1)
+        self._state.set(
+            retrievedAmount=0, retrievingSize=-1
+            , retrievingWhat=RetrievingWhat.RELEASES_INFORMATION)
         with requests.get(
             url, stream=True,
             headers={**REQUEST_HEADERS_JSON, **self._requestAgentHeader}
         ) as response:
             status = response.status_code
             if status < 200 or status >= 300:
-                self._set_retrieval_progress(0, 0)
+                self._state.zero()
                 logger.error(
                     f'Fetch failed {status} "{response.reason}"'
                     f' {response.text}')
@@ -274,7 +236,7 @@ class UpdateManager(metaclass=Singleton):
                     for content in response.iter_content(1024):
                         file.write(content)
                         retrievedAmount += len(content)
-                        self._set_retrieval_progress(retrievedAmount)
+                        self._state.set(retrievedAmount=retrievedAmount)
                         logger.info(len(content))
                         if delay > 0:
                             sleep(delay)
@@ -289,11 +251,11 @@ class UpdateManager(metaclass=Singleton):
                 # Preceding line instantiates a dict because the Requests
                 # library uses a custom type, like CaseInsensitiveDictionary,
                 # that hasn't implemented JSON encodability.
-                lastFetch = self._last_fetch_from_releases_files()
+                releasesChecked = self._last_fetch_from_releases_files()
 
-            self._set_last_fetch(lastFetch)
+            self._state.set(releasesChecked=releasesChecked)
 
-        self._set_retrieval_progress(0, 0)
+        self._state.zero()
 
     def _asset_to_download(self):
         '''Release self._releasesDataLock before calling.'''
@@ -392,21 +354,96 @@ class UpdateManager(metaclass=Singleton):
 
         return indexLastPublished
 
+class LockedState:
+    def __init__(self):
+        self._lock = Lock()
+        with self._lock:
+            self._releasesChecked = None
+            self._retrievedAmount = None
+            self._retrievingSize = None
+            self._retrievingWhat = None
+            self._installerPath = None
+            self._setEver = False
+    
+    def set(
+        self,
+        releasesChecked: Optional[datetime] = None,
+        retrievedAmount: Optional[int] = None,
+        retrievingSize: Optional[int] = None,
+        retrievingWhat: Optional[RetrievingWhat] = None,
+        installerPath: Optional[str] = None
+    ):
+        with self._lock:
+            self._setEver = True
+            if releasesChecked is not None:
+                self._releasesChecked = releasesChecked
+            if retrievedAmount is not None:
+                self._retrievedAmount = retrievedAmount
+            if retrievingSize is not None:
+                self._retrievingSize = retrievingSize
+            if installerPath is not None:
+                self._installerPath = installerPath
+            if retrievingWhat is None:
+                if retrievedAmount == 0 and retrievingSize == 0:
+                    self._retrievingWhat = RetrievingWhat.NOTHING
+            else:
+                self._retrievingWhat = retrievingWhat
+
+            return self
+    
+    def zero(self, **kwargs):
+        return self.set(retrievedAmount=0, retrievingSize=0, **kwargs)
+
+    def get(self):
+        with self._lock:
+            releasesSummaries = ["Update availability unknown."]
+            if self._setEver:
+                releasesSummaries.clear()
+                if self._releasesChecked is None:
+                    releasesSummaries.append(
+                        "Update availability never checked.")
+                else:
+                    description = self._releasesChecked.strftime(r"%c")
+                    # Near here, could use a timedelta to give a more evocative
+                    # message like "5 minutes ago".
+                    releasesSummaries.extend((
+                        'Update availability checked ', description, "."))
+                if self._retrievingWhat is RetrievingWhat.RELEASES_INFORMATION:
+                    releasesSummaries.append(self._progress())
+
+            return UpdateState(
+                "".join(releasesSummaries),
+                self._releasesChecked,
+                self._retrievedAmount,
+                self._retrievingSize,
+                self._retrievingWhat,
+                self._installerPath
+            )
+    
+    def _progress(self) -> str:
+        if self._retrievingSize == 0:
+            return ""
+        if self._retrievingSize < 0:
+            return f" Retrieving {self._retrievedAmount} bytes..."
+        raise NotImplementedError()
+
 class UpdateState(NamedTuple):
-    lastFetchMessage: str
-    lastFetchDateTime: datetime
+    releasesSummary: str
+    releasesChecked: datetime
     retrievedAmount: int
     retrievingSize: int
+    # retrievingSize semantics are as follows.
+    # -   Zero if no retrieval is underway.
+    # -   Negative if an indeterminate retrieval is underway.
+    # -   Positive if a determinate retrieval is underway.
+    retrievingWhat: RetrievingWhat
     installerPath: Path
 
     def __eq__(self, other):
-        return (
-            self.lastFetchMessage == other.lastFetchMessage
-            and self.lastFetchDateTime == other.lastFetchDateTime
-            and self.retrievedAmount == other.retrievedAmount
-            and self.retrievingSize == other.retrievingSize
-            and self.installerPath == other.installerPath
-        )
+        for field in self._fields:
+            if getattr(self, field) != getattr(other, field):
+                return False
+        return True
 
 class Asset(NamedTuple):
     filename: str
@@ -414,24 +451,27 @@ class Asset(NamedTuple):
     url: str
     sizeBytes: int
 
-    def fetch(self, agentHeader, progress_callback):
+    def fetch(self, agentHeader:dict, lockedState:LockedState):
         directory = Path(App().updateDirectory, "asset" + self.identifier)
         directory.mkdir(parents=True, exist_ok=True)
         path = directory / self.filename
         if path.is_file() and path.stat().st_size == self.sizeBytes:
             logger.info(f"Asset already fetched {path} {self.sizeBytes}.")
-            progress_callback(0, 0, path)
+            lockedState.zero(installerPath=path)
             return None
 
         logger.info(f"Fetching asset {self.url} ...")
-        progress_callback(0, self.sizeBytes)
+        lockedState.set(
+            retrievedAmount=0, retrievingSize=self.sizeBytes
+            , retrievingWhat=RetrievingWhat.INSTALLER
+        )
         with requests.get(
             self.url, stream=True,
             headers={**REQUEST_HEADERS_BINARY, **agentHeader}
         ) as response:
             status = response.status_code
             if status < 200 or status >= 300:
-                progress_callback(0, 0)
+                lockedState.zero()
                 logger.error(
                     f'Asset fetch failed {status} "{response.reason}"'
                     f' {response.text}')
@@ -444,7 +484,7 @@ class Asset(NamedTuple):
                 for content in response.iter_content(8 * 1024 * 1024):
                     file.write(content)
                     retrievedAmount += len(content)
-                    progress_callback(retrievedAmount)
-            progress_callback(0, 0, path)
+                    lockedState.set(retrievedAmount=retrievedAmount)
+            lockedState.zero(installerPath=path)
             logger.info(f"Asset fetched {path} {self.sizeBytes}.")
             return True
