@@ -57,7 +57,7 @@ class MainGui:
 
         # Update state and reflection into tkinter observable Var instances.
         self._updateState = None
-        self.lastFetchMessage = StringVar(
+        self.releasesSummary = StringVar(
             self.tk_root, "Releases information unknown.")
         self.retrievingSize = IntVar(self.tk_root, 0)
         self.retrievedAmount = IntVar(self.tk_root, 0)
@@ -138,8 +138,8 @@ class MainGui:
         updateState = UpdateManager().state
         if self._updateState is None or updateState != self._updateState:
             logger.info(f"updateState {updateState}.")
-            if self.lastFetchMessage.get() != updateState.lastFetchMessage:
-                self.lastFetchMessage.set(updateState.lastFetchMessage)
+            if self.releasesSummary.get() != updateState.releasesSummary:
+                self.releasesSummary.set(updateState.releasesSummary)
         self._updateState = updateState
 
     def del_main_gui(self):
