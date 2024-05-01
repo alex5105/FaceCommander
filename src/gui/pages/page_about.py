@@ -11,6 +11,8 @@ import logging
 # TOTH  
 # -   https://www.pythontutorial.net/tkinter/tkinter-event-binding/
 # -   https://www.pythontutorial.net/tkinter/tkinter-place/
+# -   https://www.askpython.com/python-modules/tkinter/tkinter-intvar  
+#     Includes an example of the trace() method.
 from tkinter import END, StringVar
 from tkinter.ttk import Label
 from tkinter.scrolledtext import ScrolledText
@@ -18,7 +20,7 @@ from tkinter.font import Font #, families as font_families
 #
 # Type hints module.
 # https://docs.python.org/3/library/typing.html#typing.NamedTuple
-from typing import NamedTuple, Callable
+from typing import NamedTuple, Callable, Optional, Any
 #
 # Browser launcher module.
 # https://docs.python.org/3/library/webbrowser.html
@@ -91,26 +93,36 @@ class PageAbout(SafeDisposableFrame):
 Control and move the pointer using head movements and facial gestures.
 Disclaimer: This software isn't intended for medical use.
 {App().name} is an """
-        ).link("Open Source project", App().repositoryURL
+        ).link("Open Source project", App().repositoryURL, "link"
         ).span(" developed by the Ace Centre. Visit "
-        ).link("our website", "https://acecentre.org.uk"
+        ).link("our website", "https://acecentre.org.uk", "link"
         ).paragraph(
             " to find out more about how we provide support for people with"
             " complex communications difficulties."
-        ).paragraph("Releases", "h2"
+        ).paragraph("Updates", "h2"
+        ).span("This software can "
+        ).clickable(
+            "check for updates", self.check_updates, []
+            , "Download releases information now."
+            , "link"
+        ).span(" on its "
+        ).link("releases website",  App().releasesWebsite, "link"
+        ).paragraph("."
         ).paragraph(f"Version {App().version}"
-        ).dynamic(self._updateHost.lastFetchMessage
-        # , f"Last check for updates {self.last_fetch()}.\n", ()
-
-        ).paragraph("Attribution", "h2"
+        ).dynamic(self._updateHost.releasesSummary
+        ).paragraph("").paragraph("Attribution", "h2"
         ).span("Blink graphics in the user interface are based on "
         ).link(
             "Eye icons created by Kiranshastry - Flaticon"
             , "https://www.flaticon.com/free-icons/eye"
+            , "link"
         ).span(".\nThis software was based on "
-        ).link("Grimassist", "https://github.com/acidcoke/Grimassist/"
+        ).link("Grimassist", "https://github.com/acidcoke/Grimassist/", "link"
         ).span(", itself based on "
-        ).link("Google GameFace", "https://github.com/google/project-gameface"
+        ).link(
+            "Google GameFace"
+            , "https://github.com/google/project-gameface"
+            , "link"
         ).span(".")
 
         self.text.configure(state='disabled')
@@ -149,17 +161,17 @@ Disclaimer: This software isn't intended for medical use.
         lastFetch = None # UpdateManager().lastFetch
         return "never" if lastFetch is None else lastFetch.strftime("%c")
 
-    def hover_enter(self, address, event):
-        logger.info(f'hover({address}, {event}) {event.type}')
+    def hover_enter(self, event, tip):
+        logger.info(f'hover({tip}, {event}) {event.type}')
         self.text.configure(cursor=self.hoverCursor)
         # TOTH how to set the text of a label.
         # https://stackoverflow.com/a/17126015/7657675
-        self.hoverLabel.configure(text=address)
+        self.hoverLabel.configure(text=tip)
         # Put the hover label in the bottom left corner of the page.
         self.hoverLabel.place(x=0, rely=1, anchor='sw')
 
-    def hover_leave(self, address, event):
-        logger.info(f'hover({address}, {event}) {event.type}')
+    def hover_leave(self, event, tip):
+        logger.info(f'hover({tip}, {event}) {event.type}')
         self.text.configure(cursor=self.initialCursor)
         # TOTH how to set the text of a label.
         # https://stackoverflow.com/a/17126015/7657675
@@ -167,17 +179,11 @@ Disclaimer: This software isn't intended for medical use.
         # Make the hover label disappear.
         self.hoverLabel.place_forget()
 
-    def open_in_browser(self, address, event):
-        logger.info(f'open_in_browser({address}, {event})')
-        webbrowser.open(address)
+    def check_updates(self, event):
+        UpdateManager().manage(checkNow=True)
 
     def enter(self):
         super().enter()
-        # def written(*args):
-        #     logger.info(
-        #         f'written({args}) {self._updateHost.lastFetchMessage.get()}')
-        # self._updateHost.lastFetchMessage.trace('w', written)
-
 
         # Next line would opens the About file in the browser.
         # open_in_browser(aboutHTML.as_uri(), None)
@@ -185,29 +191,79 @@ Disclaimer: This software isn't intended for medical use.
     def refresh_profile(self):
         pass
 
-class Link(NamedTuple):
-    tag:str
-    address:str
-    enter:Callable
-    leave:Callable
-    click:Callable
+class Clickable(NamedTuple):
+    identifier:str
+    callback:Callable
+    parameters:list[Any]
+    hoverTip:str
+    page:PageAbout
+
+    # Jim initially was using Python lambda expressions for the event handlers.
+    # That seemed to result in all tag_bind() calls being overridden to
+    # whichever was the last one called. So now lambda expressions aren't used.
+    def enter(self, event):
+        self.page.hover_enter(event, self.hoverTip)
+    def leave(self, event):
+        self.page.hover_leave(event, self.hoverTip)
+    def click(self, event):
+        parameters = [event] + self.parameters
+        self.callback(*parameters)
+    
+    def configure(self):
+        self.page.text.tag_configure(self.identifier)
+
+        # TOTH using tag_bind. https://stackoverflow.com/a/65733556/7657675  
+        # TOTH list of events that makes clear they have to be in angle
+        # brackets. https://stackoverflow.com/a/32289245/7657675
+        #
+        # -   <Enter> is triggered when the pointer hovers here.
+        # -   <Leave> is triggered when the pointer stops hovering here.
+        # -   <1> is triggered when this is clicked. It seems to be a shorthand
+        #     for button-1.
+        self.page.text.tag_bind(self.identifier, "<Enter>", self.enter)
+        self.page.text.tag_bind(self.identifier, "<Leave>", self.leave)
+        self.page.text.tag_bind(self.identifier, "<1>", self.click)
+        return self
+
+    @classmethod
+    def link(cls, identifier:str, address:str, page:PageAbout):
+        def open_in_browser(event, url):
+            webbrowser.open(url)
+
+        return cls(identifier, open_in_browser, [address], address, page)
 
 class Dynamic(NamedTuple):
-    stub:str
+    identifier:str
     start:str
     finish:str
     stringVar:StringVar
     page:PageAbout
 
     @classmethod
-    def stubbed(cls, stub, stringVar, page):
+    def stubbed(cls, identifier, stringVar, page):
         return cls(
-            stub
-            , "-".join((stub, "start"))
-            , "-".join((stub, "finish"))
+            identifier
+            , "-".join((identifier, "start"))
+            , "-".join((identifier, "finish"))
             , stringVar
             , page
         )
+
+    def configure(self):
+        self.page.text.tag_configure(self.identifier)
+
+        # Marks are set to a position just before the "newline that Tk always
+        # adds at the end of the text."  
+        # See https://tkdocs.com/tutorial/text.html#modifying
+        #
+        # They have left gravity so that subsequent text inserted at END gets
+        # appended after the marks.  
+        # See https://tkdocs.com/tutorial/text.html#marks
+        self.page.text.mark_set(self.start, 'end - 1 chars')
+        self.page.text.mark_gravity(self.start, 'left')
+        self.page.text.mark_set(self.finish, self.start)
+        self.page.text.mark_gravity(self.finish, 'left')
+        return self
 
     def getter(self):
         value = self.stringVar.get()
@@ -227,17 +283,17 @@ class Dynamic(NamedTuple):
         logger.info(
             f'{ascii(newText)} {tkText.index(self.start)}'
             f' {tkText.index(self.finish)}')
-        tkText.insert(self.start, newText, (self.stub,))
+        tkText.insert(self.start, newText, (self.identifier,))
         logger.info(f'{tkText.index(self.start)} {tkText.index(self.finish)}')
         tkText.mark_set(
             self.finish,
-            f"{self.stub}.last" if len(newText) > 0 else self.start
+            f"{self.identifier}.last" if len(newText) > 0 else self.start
         )
         logger.info(f'{tkText.index(self.start)} {tkText.index(self.finish)}')
         tkText.configure(state=initialState)
 
     def tracer(self, *args):
-        logger.info(f'tracer({args}) "{self.stub}"')
+        logger.info(f'tracer({args}) "{self.identifier}"')
         self.setter()
 
 class SpannedText:
@@ -245,8 +301,6 @@ class SpannedText:
         self._page = pageAbout
         self._anchors = {}
 
-        self._linkTag = "link"
-    
     def span(self, text, *tags):
         self._page.text.insert(END, text, tags)
         return self
@@ -254,53 +308,26 @@ class SpannedText:
     def paragraph(self, text, *tags):
         return self.span(text + "\n", *tags)
     
-    def link(self, text, address, *extraTags):
-        # Jim initially was using Python lambda expressions for the event
-        # handlers. That seemed to result in all tag_bind() calls being
-        # overridden to whichever was the last one called. So now lambda
-        # expressions aren't used.
-        def _enter(event): self._page.hover_enter(address, event)
-        def _leave(event): self._page.hover_leave(address, event)
-        def _click(event): self._page.open_in_browser(address, event)
-
-        anchor = Link(
-            f'address{len(self._anchors)}', address, _enter, _leave, _click)
-        self._page.text.tag_configure(anchor.tag)
-
-        # TOTH using tag_bind. https://stackoverflow.com/a/65733556/7657675  
-        # TOTH list of events that makes clear they have to be in angle
-        # brackets. https://stackoverflow.com/a/32289245/7657675
-        #
-        # -   <Enter> is triggered when the pointer hovers here.
-        # -   <Leave> is triggered when the pointer stops hovering here.
-        # -   <1> is triggered when this is clicked. It seems to be a shorthand
-        #     for button-1.
-        self._page.text.tag_bind(anchor.tag, "<Enter>", anchor.enter)
-        self._page.text.tag_bind(anchor.tag, "<Leave>", anchor.leave)
-        self._page.text.tag_bind(anchor.tag, "<1>", anchor.click)
-
-        self._anchors[anchor.tag] = anchor
-        return self.span(text, self._linkTag, anchor.tag, *extraTags)
+    def _anchor(self):
+        return f'anchor{len(self._anchors)}'
+    
+    def link(self, text, address, *tags):
+        anchor = Clickable.link(self._anchor(), address, self._page).configure()
+        self._anchors[anchor.identifier] = anchor
+        return self.span(text, anchor.identifier, *tags)
 
     def dynamic(self, stringVar):
         anchor = Dynamic.stubbed(
-            f'anchor{len(self._anchors)}', stringVar, self._page)
-
-        # Marks are set to a position just before the "newline that Tk always
-        # adds at the end of the text."  
-        # See https://tkdocs.com/tutorial/text.html#modifying
-        #
-        # They have left gravity so that subsequent text inserted at END gets
-        # appended after the marks.  
-        # See https://tkdocs.com/tutorial/text.html#marks
-        self._page.text.mark_set(anchor.start, 'end - 1 chars')
-        self._page.text.mark_gravity(anchor.start, 'left')
-        self._page.text.mark_set(anchor.finish, anchor.start)
-        self._page.text.mark_gravity(anchor.finish, 'left')
-
-        self._anchors[anchor.stub] = anchor
-
+            self._anchor(), stringVar, self._page).configure()
+        self._anchors[anchor.identifier] = anchor
         return_ = self.span("")
         anchor.setter()
         stringVar.trace('w', anchor.tracer)
         return return_
+
+    def clickable(self, text, callback, parameters, hoverTip, *tags):
+        anchor = Clickable(
+            self._anchor(), callback, parameters, hoverTip, self._page
+        ).configure()
+        self._anchors[anchor.identifier] = anchor
+        return self.span(text, anchor.identifier, *tags)
