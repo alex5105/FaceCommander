@@ -37,6 +37,11 @@ UPDATE_SUBDIRECTORY = ("update",)
 REPOSITORY_UNSPLIT = (
     "https", "github.com", "/".join((APP_AUTHOR, APP_NAME)) , None, None)
 
+# https://github.com/AceCentre/FaceCommander/releases
+RELEASES_WEBSITE_UNSPLIT = (
+    "https", "github.com", "/".join((APP_AUTHOR, APP_NAME, "releases"))
+    , None, None)
+
 # https://api.github.com/repos/AceCentre/FaceCommander/releases
 RELEASES_API_UNSPLIT = (
     "https", "api.github.com"
@@ -64,6 +69,7 @@ class App(metaclass=Singleton):
         self._updateDirectory = None
 
         self._repositoryURL = urlunsplit(REPOSITORY_UNSPLIT)
+        self._releasesWebsite = urlunsplit(RELEASES_WEBSITE_UNSPLIT)
         self._releasesAPI = urlunsplit(RELEASES_API_UNSPLIT)
 
     # Properties for command line switches.
@@ -140,3 +146,7 @@ class App(metaclass=Singleton):
     @property
     def releasesAPI(self):
         return self._releasesAPI
+
+    @property
+    def releasesWebsite(self):
+        return self._releasesWebsite
