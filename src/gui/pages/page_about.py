@@ -41,6 +41,20 @@ logger = logging.getLogger("PageAbout")
 #     , "Exists." if path.exists() else "Doesn't exist."
 # )))
 
+class Para():
+    def __init__(self, stringVar):
+        self._stringVar = stringVar
+    
+    def get(self):
+        value = self._stringVar.get()
+        # logger.info(f'{value=}')
+        if (value is not None and value != "" and not value.endswith("\n")):
+            return value + "\n"
+        return value
+    
+    def trace(self, *args):
+        return self._stringVar.trace(*args)
+
 class PageAbout(SafeDisposableFrame):
     hoverCursor = "hand2"
 
@@ -53,6 +67,9 @@ class PageAbout(SafeDisposableFrame):
         font24 = Font(family="Google Sans", size=24)
         font18 = Font(family="Google Sans", size=18)
         font12 = Font(family="Google Sans", size=12)
+        #
+        # This is the nearest you can get to making a character invisible.
+        font1Pixel = Font(size=-1)
 
         # Handy code to log all font families.
         # logger.info(font_families())
@@ -72,8 +89,15 @@ class PageAbout(SafeDisposableFrame):
             self, wrap="word", borderwidth=0, font=font12, spacing1=15) 
 
         # Create tags for styling the page content.
+        #
+        # Headings.
         self.text.tag_configure("h1", font=font24)
         self.text.tag_configure("h2", font=font18)
+        #
+        # Spacers, which must be inserted in between adjacent dynamic texts.
+        self.text.tag_configure("spacer", font=font1Pixel)
+        #
+        # Links.
         # TOTH Underlining https://stackoverflow.com/a/44890599/7657675
         self.text.tag_configure(
             "link", underline=True, foreground="#0000EE")
@@ -84,9 +108,6 @@ class PageAbout(SafeDisposableFrame):
         # page changes size.
         self.text.place(x=0, y=0, relwidth=1, anchor='nw')
 
-        # The argument tail is an alternating sequence of texts and tag lists.
-        # If the text is to be set in the default style then an empty tag list
-        # () is given.
         self._spanned = SpannedText(self
         ).paragraph(f"About {App().name}", "h1"
         ).span(f"""\
@@ -109,8 +130,15 @@ Disclaimer: This software isn't intended for medical use.
         ).link("releases website",  App().releasesWebsite, "link"
         ).paragraph("."
         ).paragraph(f"Version {App().version}"
-        ).dynamic(self._updateHost.releasesSummary
-        ).paragraph("").paragraph("Attribution", "h2"
+        ).span(Para(self._updateHost.releasesSummary)
+        ).span(" ", "spacer"
+        ).span(Para(self._updateHost.installerSummary)
+        ).span(" ", "spacer"
+        ).clickable(
+            Para(self._updateHost.installerPrompt), self.install_update, []
+            , "Launch installer"
+            , "link"
+        ).paragraph("Attribution", "h2"
         ).span("Blink graphics in the user interface are based on "
         ).link(
             "Eye icons created by Kiranshastry - Flaticon"
@@ -161,8 +189,8 @@ Disclaimer: This software isn't intended for medical use.
         lastFetch = None # UpdateManager().lastFetch
         return "never" if lastFetch is None else lastFetch.strftime("%c")
 
-    def hover_enter(self, event, tip):
-        logger.info(f'hover({tip}, {event}) {event.type}')
+    def hover_enter(self, event, anchor, tip):
+        logger.info(f'hover_enter(,{event.type=},{anchor=},{tip=})')
         self.text.configure(cursor=self.hoverCursor)
         # TOTH how to set the text of a label.
         # https://stackoverflow.com/a/17126015/7657675
@@ -170,8 +198,8 @@ Disclaimer: This software isn't intended for medical use.
         # Put the hover label in the bottom left corner of the page.
         self.hoverLabel.place(x=0, rely=1, anchor='sw')
 
-    def hover_leave(self, event, tip):
-        logger.info(f'hover({tip}, {event}) {event.type}')
+    def hover_leave(self, event, anchor, tip):
+        logger.info(f'hover_leave(,{event.type=},{anchor=},{tip=})')
         self.text.configure(cursor=self.initialCursor)
         # TOTH how to set the text of a label.
         # https://stackoverflow.com/a/17126015/7657675
@@ -179,8 +207,12 @@ Disclaimer: This software isn't intended for medical use.
         # Make the hover label disappear.
         self.hoverLabel.place_forget()
 
-    def check_updates(self, event):
+    def check_updates(self, event, anchor):
+        logger.info(f'check_updates(,{event.type=},{anchor=})')
         UpdateManager().manage(checkNow=True)
+    
+    def install_update(self, event, anchor):
+        logger.info(f'install_update(,{event.type=},{anchor=})')
 
     def enter(self):
         super().enter()
@@ -202,11 +234,11 @@ class Clickable(NamedTuple):
     # That seemed to result in all tag_bind() calls being overridden to
     # whichever was the last one called. So now lambda expressions aren't used.
     def enter(self, event):
-        self.page.hover_enter(event, self.hoverTip)
+        self.page.hover_enter(event, self.identifier, self.hoverTip)
     def leave(self, event):
-        self.page.hover_leave(event, self.hoverTip)
+        self.page.hover_leave(event, self.identifier, self.hoverTip)
     def click(self, event):
-        parameters = [event] + self.parameters
+        parameters = [event, self.identifier] + self.parameters
         self.callback(*parameters)
     
     def configure(self):
@@ -227,7 +259,7 @@ class Clickable(NamedTuple):
 
     @classmethod
     def link(cls, identifier:str, address:str, page:PageAbout):
-        def open_in_browser(event, url):
+        def open_in_browser(event, anchor, url):
             webbrowser.open(url)
 
         return cls(identifier, open_in_browser, [address], address, page)
@@ -236,21 +268,26 @@ class Dynamic(NamedTuple):
     identifier:str
     start:str
     finish:str
-    stringVar:StringVar
+    eol:str
+    observable:StringVar | Para
+    styleTags:list[str]
     page:PageAbout
 
     @classmethod
-    def stubbed(cls, identifier, stringVar, page):
+    def stubbed(cls, identifier, observable, page, *tags):
         return cls(
             identifier
             , "-".join((identifier, "start"))
             , "-".join((identifier, "finish"))
-            , stringVar
+            , "".join((identifier, "eol"))
+            , observable
+            , tuple(tag for tag in tags if tag != identifier)
             , page
         )
 
     def configure(self):
         self.page.text.tag_configure(self.identifier)
+        self.page.text.tag_configure(self.eol)
 
         # Marks are set to a position just before the "newline that Tk always
         # adds at the end of the text."  
@@ -265,35 +302,61 @@ class Dynamic(NamedTuple):
         self.page.text.mark_gravity(self.finish, 'left')
         return self
 
-    def getter(self):
-        value = self.stringVar.get()
-        if value is not None and value != "" and not value.endswith("\n"):
-            return value + "\n"
-        return value
-    
     def setter(self):
-        newText = self.getter()
+        newText = self.observable.get()
         tkText = self.page.text
+        logger.info(
+            f'{self.identifier=} {newText=} {tkText.index(self.start)}'
+            f' {tkText.index(self.finish)}')
         startIndex = tkText.index(self.start)
         finishIndex = tkText.index(self.finish)
+
+        # The Text object must be editable while the update is applied. When the
+        # update is finished it will be reverted to whatever state it was in
+        # before.
         initialState = tkText['state']
         tkText.configure(state='normal')
+
+        # Delete the old text and remove the tags.
         if startIndex != finishIndex:
+            logger.info(self._tag_ranges())
+            for tagName in (self.identifier, self.eol):
+                tkText.tag_remove(tagName, self.start, self.finish)
+            logger.info(self._tag_ranges())
             tkText.delete(self.start, self.finish)
+
+        # If the newText ends with a newline then the newline mustn't be inside
+        # the identifier tag. However, there must be a tag so that the finish
+        # mark can be positioned.
+        insertions = []
+        splits = newText.split("\n")
+        for splitIndex, split in enumerate(splits):
+            if splitIndex > 0:
+                insertions.extend(("\n", (self.eol, *self.styleTags)))
+            if split != "":
+                insertions.extend((split, (self.identifier, *self.styleTags)))
+
+        if len(insertions) == 0:
+            finishPosition = self.start
+        else:
+            tkText.insert(self.start, *insertions)
+            finishPosition = ".".join((insertions[-1][0], "last"))
         logger.info(
-            f'{ascii(newText)} {tkText.index(self.start)}'
-            f' {tkText.index(self.finish)}')
-        tkText.insert(self.start, newText, (self.identifier,))
-        logger.info(f'{tkText.index(self.start)} {tkText.index(self.finish)}')
-        tkText.mark_set(
-            self.finish,
-            f"{self.identifier}.last" if len(newText) > 0 else self.start
-        )
-        logger.info(f'{tkText.index(self.start)} {tkText.index(self.finish)}')
+            f'{splits=} {insertions=} {finishPosition=} {self._tag_ranges()}')
+
+        tkText.mark_set(self.finish, finishPosition)
         tkText.configure(state=initialState)
+    
+    def _tag_ranges(self):
+        return (
+            f' {self.identifier=}'
+            f' {self.page.text.tag_ranges(self.identifier)}'
+            f' {self.eol=}'
+            f' {self.page.text.tag_ranges(self.eol)}'
+        )
 
     def tracer(self, *args):
-        logger.info(f'tracer({args}) "{self.identifier}"')
+        logger.info(f'tracer{args}')
         self.setter()
 
 class SpannedText:
@@ -301,33 +364,40 @@ class SpannedText:
         self._page = pageAbout
         self._anchors = {}
 
-    def span(self, text, *tags):
-        self._page.text.insert(END, text, tags)
+    def _new_anchor_identifier(self):
+        identifier = f'anchor{len(self._anchors)}'
+        self._anchors[identifier] = []
+        return identifier
+
+    def _span(self, text, tags, identifier=None):
+        if type(text) in (StringVar, Para):
+            if identifier is None:
+                identifier = self._new_anchor_identifier()
+            anchor = Dynamic.stubbed(
+                identifier, text, self._page, *tags).configure()
+            self._anchors[anchor.identifier].append(anchor)
+            # Invoke the setter to insert the text.
+            anchor.setter()
+            text.trace('w', anchor.tracer)
+        else:
+            self._page.text.insert(END, text, tags)
         return self
-    
+
+    def span(self, text, *tags):
+        return self._span(text, tags)
+
     def paragraph(self, text, *tags):
-        return self.span(text + "\n", *tags)
-    
-    def _anchor(self):
-        return f'anchor{len(self._anchors)}'
+        return self._span(text + "\n", tags)
     
     def link(self, text, address, *tags):
-        anchor = Clickable.link(self._anchor(), address, self._page).configure()
-        self._anchors[anchor.identifier] = anchor
-        return self.span(text, anchor.identifier, *tags)
-
-    def dynamic(self, stringVar):
-        anchor = Dynamic.stubbed(
-            self._anchor(), stringVar, self._page).configure()
-        self._anchors[anchor.identifier] = anchor
-        return_ = self.span("")
-        anchor.setter()
-        stringVar.trace('w', anchor.tracer)
-        return return_
+        identifier = self._new_anchor_identifier()
+        anchor = Clickable.link(identifier, address, self._page).configure()
+        self._anchors[identifier].append(anchor)
+        return self._span(text, (anchor.identifier, *tags), identifier)
 
     def clickable(self, text, callback, parameters, hoverTip, *tags):
+        identifier = self._new_anchor_identifier()
         anchor = Clickable(
-            self._anchor(), callback, parameters, hoverTip, self._page
-        ).configure()
-        self._anchors[anchor.identifier] = anchor
-        return self.span(text, anchor.identifier, *tags)
+            identifier, callback, parameters, hoverTip, self._page).configure()
+        self._anchors[identifier].append(anchor)
+        return self._span(text, (identifier, *tags), identifier)
