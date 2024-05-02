@@ -58,7 +58,9 @@ class MainGui:
         # Update state and reflection into tkinter observable Var instances.
         self._updateState = None
         self.releasesSummary = StringVar(
-            self.tk_root, "Releases information unknown.")
+            self.tk_root, "Update availability unknown.")
+        self.installerSummary = StringVar(self.tk_root, "")
+        self.installerPrompt = StringVar(self.tk_root, "")
         self.retrievingSize = IntVar(self.tk_root, 0)
         self.retrievedAmount = IntVar(self.tk_root, 0)
 
@@ -138,8 +140,14 @@ class MainGui:
         updateState = UpdateManager().state
         if self._updateState is None or updateState != self._updateState:
             logger.info(f"updateState {updateState}.")
+            # It looks like the trace() callback gets invoked after every set
+            # call, even if the value didn't change.
             if self.releasesSummary.get() != updateState.releasesSummary:
                 self.releasesSummary.set(updateState.releasesSummary)
+            if self.installerSummary.get() != updateState.installerSummary:
+                self.installerSummary.set(updateState.installerSummary)
+            if self.installerPrompt.get() != updateState.installerPrompt:
+                self.installerPrompt.set(updateState.installerPrompt)
         self._updateState = updateState
 
     def del_main_gui(self):
