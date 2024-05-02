@@ -396,23 +396,10 @@ class LockedState:
 
     def get(self):
         with self._lock:
-            releasesSummaries = ["Update availability unknown."]
-            if self._setEver:
-                releasesSummaries.clear()
-                if self._releasesChecked is None:
-                    releasesSummaries.append(
-                        "Update availability never checked.")
-                else:
-                    description = self._releasesChecked.strftime(r"%c")
-                    # Near here, could use a timedelta to give a more evocative
-                    # message like "5 minutes ago".
-                    releasesSummaries.extend((
-                        'Update availability checked ', description, "."))
-                if self._retrievingWhat is RetrievingWhat.RELEASES_INFORMATION:
-                    releasesSummaries.append(self._progress())
-
             return UpdateState(
-                "".join(releasesSummaries),
+                "".join(summary for summary in self._releases_summaries()),
+                "".join(summary for summary in self._installer_summaries()),
+                "".join(prompt for prompt in self._installer_prompts()),
                 self._releasesChecked,
                 self._retrievedAmount,
                 self._retrievingSize,
@@ -420,15 +407,48 @@ class LockedState:
                 self._installerPath
             )
     
-    def _progress(self) -> str:
+    def _releases_summaries(self):
+        if not self._setEver:
+            yield "Update availability unknown."
+            return
+
+        if self._releasesChecked is None:
+            yield "Update availability never checked."
+        else:
+            yield "Update availability checked "
+            description = self._releasesChecked.strftime(r"%c")
+            # Near here, could use a timedelta to give a more evocative
+            # message like "5 minutes ago".
+            yield description
+            yield "."
+        if self._retrievingWhat is RetrievingWhat.RELEASES_INFORMATION:
+            yield from self._progress()
+
+    def _installer_summaries(self):
+        if self._retrievingWhat is RetrievingWhat.INSTALLER:
+            yield "Update download in progress. "
+            yield from self._progress()
+    
+    def _installer_prompts(self):
+        if self._installerPath is not None:
+            yield f"Update ready {self._installerPath.name}"
+
+    def _progress(self):
         if self._retrievingSize == 0:
-            return ""
+            return
         if self._retrievingSize < 0:
-            return f" Retrieving {self._retrievedAmount} bytes..."
-        raise NotImplementedError()
+            yield f" Retrieving {self._retrievedAmount} bytes..."
+            return
+        percentage = 100.0 * (
+            float(self._retrievedAmount) / float(self._retrievingSize))
+        yield (
+            f" Retrieving {percentage:.0f}%"
+            f" {self._retrievedAmount} of {self._retrievingSize} bytes...")
 
 class UpdateState(NamedTuple):
     releasesSummary: str
+    installerSummary: str
+    installerPrompt: str
     releasesChecked: datetime
     retrievedAmount: int
     retrievingSize: int
