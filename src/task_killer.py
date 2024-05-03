@@ -71,20 +71,21 @@ class TaskKiller(metaclass=Singleton):
         exit()
 
     def _exempt_PID(self):
-        pid = UpdateManager().installerPID
+        pid = UpdateManager().state.installerPID
         if pid is not None:
             yield pid
 
     def _terminate_tree(self, process, exempt):
-        logger.info(f'(, {process}, {exempt})')
+        logger.info(f'{process=} {exempt=}')
         if process.pid in exempt:
-            logger.info(f"Exempt:{process}.")
+            logger.info(f"Exempt {process.pid=}")
             return
         for child in process.children():
-            logger.info(f'Parent {process} Child {child}')
+            logger.info(f'Parent {process} {child=}')
             self._terminate_tree(child, exempt)
-        logger.info(f'SIGTERM {process}')
+        logger.info(f'SIGTERM {process.pid=}')
         try:
             process.send_signal(signal.SIGTERM)
         except NoSuchProcess:
-            pass
+            logger.info(f'No such process {process.pid=}')
+
