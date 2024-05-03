@@ -129,7 +129,9 @@ Disclaimer: This software isn't intended for medical use.
         ).span(" on its "
         ).link("releases website",  App().releasesWebsite, "link"
         ).paragraph("."
-        ).paragraph(f"Version {App().version}"
+        ).span(f"Now running {App().version}"
+        ).span(self._updateHost.runningPublished
+        ).paragraph(""
         ).span(Para(self._updateHost.releasesSummary)
         ).span(" ", "spacer"
         ).span(Para(self._updateHost.installerSummary)

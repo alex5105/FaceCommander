@@ -63,6 +63,7 @@ class MainGui():
 
         # Update state and reflection into tkinter observable Var instances.
         self._updateState = None
+        self.runningPublished = StringVar(self.tk_root, "")
         self.releasesSummary = StringVar(
             self.tk_root, "Update availability unknown.")
         self.installerSummary = StringVar(self.tk_root, "")
@@ -157,6 +158,8 @@ class MainGui():
                 self.installerSummary.set(updateState.installerSummary)
             if self.installerPrompt.get() != updateState.installerPrompt:
                 self.installerPrompt.set(updateState.installerPrompt)
+            if self.runningPublished.get() != updateState.runningPublished:
+                self.runningPublished.set(updateState.runningPublished)
         self._updateState = updateState
 
     def del_main_gui(self):
