@@ -119,6 +119,10 @@ if __name__ == "__main__":
         , type=int, help=
         "Wait for a number of seconds after retrieving each 1kb of release"
         " information.")
+    argumentParser.add_argument(
+        '--include-prereleases', dest='includePrereleases'
+        , action='store_true', help=
+        "Include prereleases in the update check and installer download.")
     argumentParser.parse_args(argv[1:], App())
 
     create_app_data_root()

@@ -56,6 +56,7 @@ class App(metaclass=Singleton):
         # Diagnostic command line options.
         self._userAgentHeader = True
         self._releaseInformationDelay = 0
+        self._includePrereleases = False
 
         # Top-level paths.
         self._installationRoot = Path(__file__).parents[1]
@@ -87,6 +88,13 @@ class App(metaclass=Singleton):
     @releaseInformationDelay.setter
     def releaseInformationDelay(self, releaseInformationDelay):
         self._releaseInformationDelay = releaseInformationDelay
+
+    @property
+    def includePrereleases(self):
+        return self._includePrereleases
+    @includePrereleases.setter
+    def includePrereleases(self, includePrereleases):
+        self._includePrereleases = includePrereleases
 
     # End of command line switches.
 
