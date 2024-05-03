@@ -95,7 +95,8 @@ class UpdateManager(metaclass=Singleton):
 
         self._requestAgentHeader = (
             {USER_AGENT_HEADER: App().name + USER_AGENT_SUFFIX}
-            if App().userAgentHeader else {} )
+            if App().userAgentHeader else {}
+        )
 
         self._startRetrieveLock = Lock()
         with self._startRetrieveLock:
@@ -103,8 +104,6 @@ class UpdateManager(metaclass=Singleton):
         self._releasesDataLock = Lock()
 
         self._state = LockedState()
-
-        self._installerPID = None
 
         self._started = False
     
@@ -148,9 +147,9 @@ class UpdateManager(metaclass=Singleton):
                     self._retrieveThread = Thread(target=self._fetch)
                     self._retrieveThread.start()
         else:
-            asset = self._asset_to_download()
-            logger.info(f'Asset to download {asset}.')
+            asset = self._process_release_information()
             if asset is not None:
+                logger.info(f'Starting thread to download {asset=}.')
                 with self._startRetrieveLock:
                     if self._retrieveThread is None:
                         self._retrieveThread = Thread(
@@ -183,11 +182,11 @@ class UpdateManager(metaclass=Singleton):
     def _fetch(self):
         '''Run as a Thread and don't start more than one.'''
         self._fetch_release_information()
-        asset = self._asset_to_download()
-        logger.info(f'Asset to download {asset}.')
+        asset = self._process_release_information()
         if asset is not None:
+            logger.info(f'Downloading in thread {asset=}.')
             asset.fetch(self._requestAgentHeader, self._state)
-
+    
     def _fetch_release_information(self):
         # References for the request.
         #
@@ -252,32 +251,69 @@ class UpdateManager(metaclass=Singleton):
             self._state.set(releasesChecked=releasesChecked)
 
         self._state.zero()
-
-    def _asset_to_download(self):
+    
+    def _process_release_information(self):
         '''Release self._releasesDataLock before calling.'''
         releases = None
         with self._releasesDataLock:
             if self._releasesRawPath.is_file():
                 with self._releasesRawPath.open("rb") as file:
                     releases = json.load(file) # Will be an array of objects.
-        index = self._index_of_last_published(releases)
-        if index is None:
+
+        if releases is None:
             return None
-        release = releases[index]
-        releaseName = release['name']
-        if releaseName.startswith("v"):
-            releaseName = releaseName[1:]
-        logger.info(
-            f'Latest release "{releaseName}". Running "{App().version}"'
-            f" {releaseName == App().version}")
+        
+        latestIndex = None
+        latestPublished = None
+        runningIndex = None
+        for index, release in enumerate(releases):
+            published, publishedStr = self._published(release)
+            running, prerelease, name = self._running(release)
+            logger.info(
+                f'releases[{index}] {name=} {running=} {prerelease=}'
+                f' {publishedStr=} {published.astimezone()}')
 
-        # Near here check if the running software is the latest release. If it
-        # is then no need to download, but that can be overridden from the CLI.
-        # Also need to support developers running a later version than hasn't
-        # been published.
+            if running:
+                runningIndex = index
+                self._state.set(runningPublished=(" ".join((
+                    " prerelease" if prerelease else " published"
+                    , published.strftime(r"%c")
+                ))))
+
+            # Near here have a CLI that says preview releases are in scope.
 
 
-        for asset in release["assets"]:
+            if prerelease:
+                continue
+
+            if latestIndex is not None:
+                logger.info(
+                    f'releases[{index}] {published.astimezone()}'
+                    f' > {latestPublished.astimezone()}'
+                    f' {published < latestPublished}')
+                if published < latestPublished:
+                    continue
+            latestIndex = index
+            latestPublished = published
+
+
+
+        # ToDo add a CLI to override this.
+        if runningIndex is None:
+            logger.info(
+                "Running an unpublished developer version."
+                " No installer asset download.")
+            self._state.set(runningPublished=" in development.")
+            return None
+
+        if latestIndex == runningIndex:
+            # Running software is the latest published, so no need to download
+            # an installer asset.
+            logger.info("Running latest release. No installer asset download.")
+            return None
+
+        assets = releases[latestIndex]["assets"]
+        for asset in assets:
             name = asset["name"]
             if (
                 name.endswith(".exe")
@@ -285,8 +321,29 @@ class UpdateManager(metaclass=Singleton):
             ):
                 return Asset(
                     name, str(asset['id']), asset['url'], asset['size'])
-        
+
+
+        # ToDo test with more than one release.
+
+
+        logger.error(f"No installer identified for download {assets=}")
         return None
+
+    def _published(self, release):
+        publishedStr = release['published_at']
+        #
+        # Ending with a Z, to indicate zero time zone offset, is valid ISO
+        # 8601 format but seems to be rejected by Python 3.10 on Windows.
+        if publishedStr[-1] == 'Z':
+            publishedStr = publishedStr[:-1] + "+00:00"
+        return datetime.fromisoformat(publishedStr), publishedStr
+
+    def _running(self, release):
+        name = release['name']
+        if name.startswith("v"):
+            name = name[1:]
+        return (name == App().version), release['prerelease'], name
+
 
         # Near here, manage any installers that were already downloaded.
         #
@@ -299,49 +356,6 @@ class UpdateManager(metaclass=Singleton):
         # |    +--- FaceCommander-installer...exe
         # |
         # +--- download.json
-
-
-
-    def _index_of_last_published(self, releases):
-        # Near here have a flag for whether to include preview releases. And
-        # have a CLI that says preview releases are in scope.
-
-
-        if releases is None:
-            return None
-        
-        indexLastPublished = None
-        timeLastPublished = None
-        for index, release in enumerate(releases):
-            publishedStr = release['published_at']
-            #
-            # Ending with a Z, to indicate zero time zone offset, is valid ISO
-            # 8601 format but seems to be rejected by Python 3.10 on Windows.
-            if publishedStr[-1] == 'Z':
-                publishedStr = publishedStr[:-1] + "+00:00"
-            logger.info(publishedStr)
-            published = datetime.fromisoformat(publishedStr)
-            if indexLastPublished is None:
-                logger.info(f'releases[{index}] {published.astimezone()}')
-            else:
-                logger.info(
-                    f'releases[{index}] {published.astimezone()}'
-                    f' > {timeLastPublished.astimezone()}'
-                    f' {published < timeLastPublished}')
-                if published < timeLastPublished:
-                    continue
-            indexLastPublished = index
-            timeLastPublished = published
-
-
-
-        # ToDo test with more than one release.
-
-
-
-        return indexLastPublished
-
-
 
     def launch_installer(self):
         installerPath = self._state.get().installerPath
@@ -376,6 +390,7 @@ class LockedState:
             self._installerPath = None
             self._setEver = False
             self._installerPopen = None
+            self._runningPublished = ""
     
     def set(
         self,
@@ -384,7 +399,8 @@ class LockedState:
         retrievingSize: Optional[int] = None,
         retrievingWhat: Optional[RetrievingWhat] = None,
         installerPath: Optional[str] = None,
-        installerPopen: Optional[subprocess.Popen] = None
+        installerPopen: Optional[subprocess.Popen] = None,
+        runningPublished: Optional[str] = None
     ):
         with self._lock:
             self._setEver = True
@@ -403,6 +419,8 @@ class LockedState:
                 self._retrievingWhat = retrievingWhat
             if installerPopen is not None:
                 self._installerPopen = installerPopen
+            if runningPublished is not None:
+                self._runningPublished = runningPublished
     
     def zero(self, **kwargs):
         return self.set(retrievedAmount=0, retrievingSize=0, **kwargs)
@@ -429,7 +447,8 @@ class LockedState:
                 self._retrievingSize,
                 self._retrievingWhat,
                 self._installerPath,
-                installerPID
+                installerPID,
+                self._runningPublished
             )
     
     def _releases_summaries(self, installerPID):
@@ -489,6 +508,7 @@ class UpdateState(NamedTuple):
     retrievingWhat: RetrievingWhat
     installerPath: Path
     installerPID: Optional[int]
+    runningPublished: str
 
     def __eq__(self, other):
         for field in self._fields:
