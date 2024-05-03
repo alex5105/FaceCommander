@@ -20,7 +20,7 @@ from tkinter.font import Font #, families as font_families
 #
 # Type hints module.
 # https://docs.python.org/3/library/typing.html#typing.NamedTuple
-from typing import NamedTuple, Callable, Optional, Any
+from typing import NamedTuple, Callable, Any
 #
 # Browser launcher module.
 # https://docs.python.org/3/library/webbrowser.html
@@ -213,7 +213,7 @@ Disclaimer: This software isn't intended for medical use.
     
     def install_update(self, event, anchor):
         logger.info(f'install_update(,{event.type=},{anchor=})')
-        launched = UpdateManager().launch_installer()
+        UpdateManager().launch_installer()
 
     def enter(self):
         super().enter()
