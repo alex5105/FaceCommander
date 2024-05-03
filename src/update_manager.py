@@ -112,10 +112,6 @@ class UpdateManager(metaclass=Singleton):
     def state(self):
         return self._state.get()
 
-    @property
-    def installerPID(self):
-        return self._installerPID
-
     def start(self):
         if not self._started:
             self._started = True
@@ -306,19 +302,6 @@ class UpdateManager(metaclass=Singleton):
 
 
 
-        # if installerPath.is_file():
-        #     logger.info(f'Launching installer "{installerPath}" ...')
-        #     # TOTH start a process that won't be terminated by termination of
-        #     # the parent.  
-        #     # https://stackoverflow.com/a/39715066/7657675
-        #     popen = subprocess.Popen(
-        #         (installerPath,)
-        #         , creationflags=(
-        #             subprocess.CREATE_NEW_PROCESS_GROUP
-        #             | subprocess.DETACHED_PROCESS )
-        #     )
-        #     self._installerPID = popen.pid
-
     def _index_of_last_published(self, releases):
         # Near here have a flag for whether to include preview releases. And
         # have a CLI that says preview releases are in scope.
@@ -350,9 +333,37 @@ class UpdateManager(metaclass=Singleton):
             indexLastPublished = index
             timeLastPublished = published
 
+
+
         # ToDo test with more than one release.
 
+
+
         return indexLastPublished
+
+
+
+    def launch_installer(self):
+        installerPath = self._state.get().installerPath
+        if installerPath is None:
+            logger.error("Installer path is None.")
+            return False
+
+        if not installerPath.is_file():
+            logger.error("Installer path isn't a file." f' "{installerPath}"')
+            return False
+
+        logger.info(f'Launching installer "{installerPath}"')
+        # TOTH start a process that won't be terminated by termination of
+        # the parent.  
+        # https://stackoverflow.com/a/39715066/7657675
+        self._state.set(installerPopen=subprocess.Popen(
+            (installerPath,), creationflags=(
+                subprocess.CREATE_NEW_PROCESS_GROUP
+                | subprocess.DETACHED_PROCESS
+            )
+        ))
+        return True
 
 class LockedState:
     def __init__(self):
@@ -364,6 +375,7 @@ class LockedState:
             self._retrievingWhat = None
             self._installerPath = None
             self._setEver = False
+            self._installerPopen = None
     
     def set(
         self,
@@ -371,7 +383,8 @@ class LockedState:
         retrievedAmount: Optional[int] = None,
         retrievingSize: Optional[int] = None,
         retrievingWhat: Optional[RetrievingWhat] = None,
-        installerPath: Optional[str] = None
+        installerPath: Optional[str] = None,
+        installerPopen: Optional[subprocess.Popen] = None
     ):
         with self._lock:
             self._setEver = True
@@ -388,26 +401,40 @@ class LockedState:
                     self._retrievingWhat = RetrievingWhat.NOTHING
             else:
                 self._retrievingWhat = retrievingWhat
-
-            return self
+            if installerPopen is not None:
+                self._installerPopen = installerPopen
     
     def zero(self, **kwargs):
         return self.set(retrievedAmount=0, retrievingSize=0, **kwargs)
 
     def get(self):
         with self._lock:
+            installerPID = None
+            if self._installerPopen is not None:
+                if self._installerPopen.poll() is None:
+                    # Process is still running.
+                    installerPID = self._installerPopen.pid
             return UpdateState(
-                "".join(summary for summary in self._releases_summaries()),
-                "".join(summary for summary in self._installer_summaries()),
-                "".join(prompt for prompt in self._installer_prompts()),
+                "".join(
+                    summary for summary in
+                    self._releases_summaries(installerPID)),
+                "".join(
+                    summary for summary in
+                    self._installer_summaries(installerPID)),
+                "".join(
+                    prompt for prompt in
+                    self._installer_prompts(installerPID)),
                 self._releasesChecked,
                 self._retrievedAmount,
                 self._retrievingSize,
                 self._retrievingWhat,
-                self._installerPath
+                self._installerPath,
+                installerPID
             )
     
-    def _releases_summaries(self):
+    def _releases_summaries(self, installerPID):
+        if installerPID is not None:
+            return
         if not self._setEver:
             yield "Update availability unknown."
             return
@@ -424,13 +451,16 @@ class LockedState:
         if self._retrievingWhat is RetrievingWhat.RELEASES_INFORMATION:
             yield from self._progress()
 
-    def _installer_summaries(self):
+    def _installer_summaries(self, installerPID):
+        if installerPID is not None:
+            yield "Update in progress."
+            return
         if self._retrievingWhat is RetrievingWhat.INSTALLER:
             yield "Update download in progress. "
             yield from self._progress()
     
-    def _installer_prompts(self):
-        if self._installerPath is not None:
+    def _installer_prompts(self, installerPID):
+        if installerPID is None and self._installerPath is not None:
             yield f"Update ready {self._installerPath.name}"
 
     def _progress(self):
@@ -458,6 +488,7 @@ class UpdateState(NamedTuple):
     # -   Positive if a determinate retrieval is underway.
     retrievingWhat: RetrievingWhat
     installerPath: Path
+    installerPID: Optional[int]
 
     def __eq__(self, other):
         for field in self._fields:
