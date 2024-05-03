@@ -213,6 +213,7 @@ Disclaimer: This software isn't intended for medical use.
     
     def install_update(self, event, anchor):
         logger.info(f'install_update(,{event.type=},{anchor=})')
+        launched = UpdateManager().launch_installer()
 
     def enter(self):
         super().enter()
@@ -281,6 +282,8 @@ class Dynamic(NamedTuple):
             , "-".join((identifier, "finish"))
             , "".join((identifier, "eol"))
             , observable
+            #
+            # Filter out the identifier tag which will be added by the setter.
             , tuple(tag for tag in tags if tag != identifier)
             , page
         )
