@@ -260,12 +260,14 @@ class UpdateManager(metaclass=Singleton):
                 with self._releasesRawPath.open("rb") as file:
                     releases = json.load(file) # Will be an array of objects.
 
-        if releases is None:
+        if releases is None or len(releases) == 0:
+            logger.error(f"No information {releases=}")
             return None
         
         latestIndex = None
         latestPublished = None
         runningIndex = None
+        prereleases = 0
         for index, release in enumerate(releases):
             published, publishedStr = self._published(release)
             running, prerelease, name = self._running(release)
@@ -284,6 +286,7 @@ class UpdateManager(metaclass=Singleton):
 
 
             if prerelease:
+                prereleases += 1
                 continue
 
             if latestIndex is not None:
@@ -296,14 +299,19 @@ class UpdateManager(metaclass=Singleton):
             latestIndex = index
             latestPublished = published
 
-
-
         # ToDo add a CLI to override this.
         if runningIndex is None:
             logger.info(
                 "Running an unpublished developer version."
                 " No installer asset download.")
             self._state.set(runningPublished=" in development.")
+            return None
+        
+        if latestIndex is None:
+            logger.info(
+                f'{latestIndex=}.'
+                f' Total release count {len(releases)}.'
+                f' Of which, prerelease count {prereleases}.')
             return None
 
         if latestIndex == runningIndex:
