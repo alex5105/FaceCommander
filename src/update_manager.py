@@ -273,13 +273,13 @@ class UpdateManager(metaclass=Singleton):
             running, prerelease, name = self._running(release)
             logger.info(
                 f'releases[{index}] {name=} {running=} {prerelease=}'
-                f' {publishedStr=} {published.astimezone()}')
+                f' {publishedStr=} {published}')
 
             if running:
                 runningIndex = index
-                self._state.set(runningPublished=(" ".join((
-                    " prerelease" if prerelease else " published"
-                    , published.strftime(r"%c")
+                self._state.set(runningPublished=("".join((
+                    " ", "prerelease" if prerelease else "published"
+                    " ", published.strftime(r"%c"), "."
                 ))))
 
             # Near here have a CLI that says preview releases are in scope.
@@ -287,12 +287,12 @@ class UpdateManager(metaclass=Singleton):
 
             if prerelease:
                 prereleases += 1
-                continue
+                if not App().includePrereleases:
+                    continue
 
             if latestIndex is not None:
                 logger.info(
-                    f'releases[{index}] {published.astimezone()}'
-                    f' > {latestPublished.astimezone()}'
+                    f'releases[{index}] {published} > {latestPublished}'
                     f' {published < latestPublished}')
                 if published < latestPublished:
                     continue
@@ -344,7 +344,7 @@ class UpdateManager(metaclass=Singleton):
         # 8601 format but seems to be rejected by Python 3.10 on Windows.
         if publishedStr[-1] == 'Z':
             publishedStr = publishedStr[:-1] + "+00:00"
-        return datetime.fromisoformat(publishedStr), publishedStr
+        return datetime.fromisoformat(publishedStr).astimezone(), publishedStr
 
     def _running(self, release):
         name = release['name']
@@ -559,8 +559,9 @@ class Asset(NamedTuple):
             # TOTH For loop with iter_content.
             # https://stackoverflow.com/q/39846671/7657675
             retrievedAmount = 0
+            retrieveChunk = int(self.sizeBytes / 100)
             with path.open('wb') as file:
-                for content in response.iter_content(8 * 1024 * 1024):
+                for content in response.iter_content(retrieveChunk):
                     file.write(content)
                     retrievedAmount += len(content)
                     lockedState.set(retrievedAmount=retrievedAmount)
