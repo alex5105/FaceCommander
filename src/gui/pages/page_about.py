@@ -13,6 +13,7 @@ import logging
 # -   https://www.pythontutorial.net/tkinter/tkinter-place/
 # -   https://www.askpython.com/python-modules/tkinter/tkinter-intvar  
 #     Includes an example of the trace() method.
+# -   https://tkdocs.com/shipman/text-methods.html
 from tkinter import END, StringVar
 from tkinter.ttk import Label
 from tkinter.scrolledtext import ScrolledText
