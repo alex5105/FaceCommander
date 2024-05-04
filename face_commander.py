@@ -116,9 +116,10 @@ if __name__ == "__main__":
         " causes fetch to fail with HTTP 403.")
     argumentParser.add_argument(
         '--release-information-delay', dest='releaseInformationDelay'
-        , type=int, help=
+        , metavar="SECONDS", type=int, help=
         "Wait for a number of seconds after retrieving each 1kb of release"
-        " information.")
+        " information. This makes it easy to see retrieval progress on the"
+        " About page.")
     argumentParser.add_argument(
         '--include-prereleases', dest='includePrereleases'
         , action='store_true', help=
