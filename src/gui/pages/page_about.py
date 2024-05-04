@@ -128,9 +128,9 @@ Disclaimer: This software isn't intended for medical use.
             , "Download releases information now."
             , "link"
         ).span(" on its "
-        ).link("releases website",  App().releasesWebsite, "link"
+        ).link("releases website", App().releasesWebsite, "link"
         ).paragraph("."
-        ).span(f"Now running {App().version}"
+        ).span(f"Now running version {App().version}"
         ).span(self._updateHost.runningPublished
         ).paragraph(""
         ).span(Para(self._updateHost.releasesSummary)
