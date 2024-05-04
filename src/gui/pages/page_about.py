@@ -188,10 +188,6 @@ Disclaimer: This software isn't intended for medical use.
             # - self.hoverLabel.winfo_height()
         )
     
-    def last_fetch(self):
-        lastFetch = None # UpdateManager().lastFetch
-        return "never" if lastFetch is None else lastFetch.strftime("%c")
-
     def hover_enter(self, event, anchor, tip):
         logger.info(f'hover_enter(,{event.type=},{anchor=},{tip=})')
         self.text.configure(cursor=self.hoverCursor)
