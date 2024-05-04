@@ -3,7 +3,7 @@
 # Date and time module.
 # https://docs.python.org/3/library/datetime.html#datetime-objects
 # https://docs.python.org/3/library/datetime.html#datetime.datetime.astimezone
-from datetime import datetime
+from datetime import datetime, timedelta
 #
 # Email utilities, used to parse the Date header from the releases data API.
 # https://docs.python.org/3/library/email.utils.html#email.utils.parsedate_to_datetime
@@ -49,6 +49,15 @@ from typing import NamedTuple, Optional
 #
 # PIP modules, in alphabetic order.
 #
+# Module for human readable dates, times, and file sizes.  
+# https://humanize.readthedocs.io  
+# Import aliases are used to conform to Python naming convention.
+from humanize import (
+    naturalsize as natural_size,
+    precisedelta as precise_delta,
+    naturaldate as natural_date
+)
+#
 # HTTP request module.
 # https://docs.python-requests.org
 import requests
@@ -78,6 +87,33 @@ REQUEST_HEADERS_BINARY = {
 USER_AGENT_HEADER = "User-Agent"
 USER_AGENT_SUFFIX = "-App"
 DATE_HEADER = "Date"
+RELEASES_CHUNK_BYTES = 1024
+DELTA = {"minimum_unit":"minutes", "format":r"%0.0f"}
+NATURAL_SIZE = {"gnu":True}
+
+# Text that appears in the user interface uses these constants. It's a bit
+# laborious but should facilitate localisation later.
+PRERELEASE = "prerelease"
+PUBLISHED = "published"
+DEVELOPMENT = "in development"
+AGO = "ago"
+JUST_NOW = "just now"
+SPACE = " "
+FULL_STOP = "."
+DOTS = "..."
+UPDATE_AVAILABILITY_UNKNOWN = "Update availability unknown."
+UPDATE_AVAILABILITY_NEVER_CHECKED = "Update availability never checked."
+UPDATE_AVAILABILITY_CHECKED = "Update availability checked"
+UPDATE_IN_PROGRESS = "Update in progress."
+UPDATE_DOWNLOAD_IN_PROGRESS = "Update download in progress."
+UPDATE_READY = "Update ready"
+RETRIEVING = "Retrieving"
+OF = "of"
+
+INSTALLER_ASSET_SUFFIX = ".exe"
+INSTALLER_ASSET_MIDDLE = "Installer"
+
+VERSION_NAME_PREFIX = "v"
 
 class RetrievingWhat(Enum):
     NOTHING = enum_auto()
@@ -87,7 +123,8 @@ class RetrievingWhat(Enum):
 class UpdateManager(metaclass=Singleton):
 
     def __init__(self):
-        self._releasesRawPath = App().updateDirectory / RELEASES_RAW_FILENAME
+        self._releasesRawPath = Path(
+            App().updateDirectory, RELEASES_RAW_FILENAME)
         self._releasesIndentedPath = Path(
             App().updateDirectory, RELEASES_INDENTED_FILENAME)
         self._releasesHeadersPath = Path(
@@ -98,9 +135,21 @@ class UpdateManager(metaclass=Singleton):
             if App().userAgentHeader else {}
         )
 
+        # Thread synchronisation locks.
+        #
+        # Start Retrieve lock, must be acquired before either of these actions.
+        #
+        # -   Starting a retrieval thread.
+        # -   Checking if a retrieval thread is already running.
+        #
+        # There is up to one retrieval thread at a time. Release the lock after
+        # starting the thread.
         self._startRetrieveLock = Lock()
         with self._startRetrieveLock:
             self._retrieveThread = None
+        #
+        # Releases Data lock, must be acquired before reading or writing the
+        # releases files.
         self._releasesDataLock = Lock()
 
         self._state = LockedState()
@@ -144,9 +193,14 @@ class UpdateManager(metaclass=Singleton):
         if checkNow:
             with self._startRetrieveLock:
                 if self._retrieveThread is None:
+                    # The _fetch method will retrieve releases data and download
+                    # an installer asset if an update is available.
                     self._retrieveThread = Thread(target=self._fetch)
                     self._retrieveThread.start()
         else:
+            # Don't retrieve releases information, but still download an
+            # installer asset if an update is available based on the stored
+            # releases information.
             asset = self._process_release_information()
             if asset is not None:
                 logger.info(f'Starting thread to download {asset=}.')
@@ -192,6 +246,9 @@ class UpdateManager(metaclass=Singleton):
         #
         # https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#list-releases-for-a-repository
         #
+        # This code uses the API without authentication. That means it retrieves
+        # only public data, which doesn't include draft releases.
+        #
         # "All API requests must include a valid User-Agent header."
         # https://docs.github.com/en/rest/using-the-rest-api/getting-started-with-the-rest-api?apiVersion=2022-11-28#user-agent
 
@@ -217,6 +274,10 @@ class UpdateManager(metaclass=Singleton):
                     f'Fetch failed {status} "{response.reason}"'
                     f' {response.text}')
             else:
+                # Download release information to a temporary file in the update
+                # directory. Rename the temporary file to the final name when
+                # the download finishes. Note that there's no need to acquire
+                # the Releases Data lock until the download has finished.
                 with NamedTemporaryFile(
                     mode='wb', delete=False, dir=App().updateDirectory,
                     prefix="tmp" + self._releasesRawPath.stem,
@@ -227,8 +288,8 @@ class UpdateManager(metaclass=Singleton):
                     # TOTH For loop with iter_content.
                     # https://stackoverflow.com/q/39846671/7657675
                     retrievedAmount = 0
-                    delay = App().releaseInformationDelay
-                    for content in response.iter_content(1024):
+                    delay = App().releaseInformationDelay # Diagnostic option.
+                    for content in response.iter_content(RELEASES_CHUNK_BYTES):
                         file.write(content)
                         retrievedAmount += len(content)
                         self._state.set(retrievedAmount=retrievedAmount)
@@ -264,6 +325,9 @@ class UpdateManager(metaclass=Singleton):
             logger.error(f"No information {releases=}")
             return None
         
+        includePrereleases = App().includePrereleases # Diagnostic option.
+        logger.info(f'{includePrereleases=}')
+        
         latestIndex = None
         latestPublished = None
         runningIndex = None
@@ -278,33 +342,27 @@ class UpdateManager(metaclass=Singleton):
             if running:
                 runningIndex = index
                 self._state.set(runningPublished=("".join((
-                    " ", "prerelease" if prerelease else "published"
-                    " ", published.strftime(r"%c"), "."
+                    SPACE, *((PRERELEASE, SPACE) if prerelease else ())
+                    , PUBLISHED, SPACE, natural_date(published), FULL_STOP
                 ))))
-
-            # Near here have a CLI that says preview releases are in scope.
-
 
             if prerelease:
                 prereleases += 1
-                if not App().includePrereleases:
+                if not includePrereleases:
                     continue
 
-            if latestIndex is not None:
-                logger.info(
-                    f'releases[{index}] {published} > {latestPublished}'
-                    f' {published < latestPublished}')
-                if published < latestPublished:
-                    continue
-            latestIndex = index
-            latestPublished = published
+            if latestIndex is None or published > latestPublished:
+                if latestIndex is not None:
+                    logger.info(f'{published} > {latestPublished}')
+                latestIndex = index
+                latestPublished = published
 
-        # ToDo add a CLI to override this.
         if runningIndex is None:
             logger.info(
                 "Running an unpublished developer version."
                 " No installer asset download.")
-            self._state.set(runningPublished=" in development.")
+            self._state.set(runningPublished="".join((
+                SPACE, DEVELOPMENT, FULL_STOP)))
             return None
         
         if latestIndex is None:
@@ -320,19 +378,16 @@ class UpdateManager(metaclass=Singleton):
             logger.info("Running latest release. No installer asset download.")
             return None
 
-        assets = releases[latestIndex]["assets"]
+        assets = releases[latestIndex]['assets']
         for asset in assets:
-            name = asset["name"]
+            name = asset['name']
             if (
-                name.endswith(".exe")
-                and name.startswith("-".join((App().name, "Installer")))
+                name.endswith(INSTALLER_ASSET_SUFFIX)
+                and name.startswith("-".join((
+                    App().name, INSTALLER_ASSET_MIDDLE)))
             ):
                 return Asset(
                     name, str(asset['id']), asset['url'], asset['size'])
-
-
-        # ToDo test with more than one release.
-
 
         logger.error(f"No installer identified for download {assets=}")
         return None
@@ -348,8 +403,8 @@ class UpdateManager(metaclass=Singleton):
 
     def _running(self, release):
         name = release['name']
-        if name.startswith("v"):
-            name = name[1:]
+        if name.startswith(VERSION_NAME_PREFIX):
+            name = name[len(VERSION_NAME_PREFIX):]
         return (name == App().version), release['prerelease'], name
 
 
@@ -463,44 +518,70 @@ class LockedState:
         if installerPID is not None:
             return
         if not self._setEver:
-            yield "Update availability unknown."
+            yield UPDATE_AVAILABILITY_UNKNOWN
             return
 
         if self._releasesChecked is None:
-            yield "Update availability never checked."
+            yield UPDATE_AVAILABILITY_NEVER_CHECKED
         else:
-            yield "Update availability checked "
-            description = self._releasesChecked.strftime(r"%c")
-            # Near here, could use a timedelta to give a more evocative
-            # message like "5 minutes ago".
-            yield description
-            yield "."
+            yield UPDATE_AVAILABILITY_CHECKED
+            yield SPACE
+            # 1.  If the check was more than an hour ago, use the natural_date()
+            #     description, which will be today, yesterday, or a date.
+            # 2.  If the check was between one hour and five minutes ago, use a
+            #     precise_delta() description, in minutes.
+            # 3.  If the check was less than five minutes ago, describe it as
+            #     just now.
+            now = datetime.now().astimezone()
+            agoMinutes = (now + timedelta(minutes=-5)).astimezone()
+            agoDate = (now + timedelta(hours=-1)).astimezone()
+            if self._releasesChecked < agoDate:
+                yield natural_date(self._releasesChecked)
+            elif self._releasesChecked < agoMinutes:
+                yield precise_delta(
+                    now - self._releasesChecked, **DELTA)
+                yield SPACE
+                yield AGO
+            else:
+                yield JUST_NOW
+            yield FULL_STOP
         if self._retrievingWhat is RetrievingWhat.RELEASES_INFORMATION:
             yield from self._progress()
 
     def _installer_summaries(self, installerPID):
         if installerPID is not None:
-            yield "Update in progress."
+            yield UPDATE_IN_PROGRESS
             return
         if self._retrievingWhat is RetrievingWhat.INSTALLER:
-            yield "Update download in progress. "
+            yield UPDATE_DOWNLOAD_IN_PROGRESS
             yield from self._progress()
     
     def _installer_prompts(self, installerPID):
         if installerPID is None and self._installerPath is not None:
-            yield f"Update ready {self._installerPath.name}"
+            yield UPDATE_READY
+            yield SPACE
+            yield self._installerPath.name
 
     def _progress(self):
         if self._retrievingSize == 0:
             return
+        yield SPACE
+        yield RETRIEVING
+        yield SPACE
         if self._retrievingSize < 0:
-            yield f" Retrieving {self._retrievedAmount} bytes..."
-            return
-        percentage = 100.0 * (
-            float(self._retrievedAmount) / float(self._retrievingSize))
-        yield (
-            f" Retrieving {percentage:.0f}%"
-            f" {self._retrievedAmount} of {self._retrievingSize} bytes...")
+            yield natural_size(self._retrievedAmount, **NATURAL_SIZE)
+        elif self._retrievingSize > 0:
+            percentage = 100.0 * (
+                float(self._retrievedAmount) / float(self._retrievingSize))
+            yield f"{percentage:.0f}%"
+            yield SPACE
+            yield natural_size(self._retrievedAmount, **NATURAL_SIZE)
+            yield SPACE
+            yield OF
+            yield SPACE
+            yield natural_size(self._retrievingSize, **NATURAL_SIZE)
+        yield SPACE
+        yield DOTS
 
 class UpdateState(NamedTuple):
     releasesSummary: str
@@ -559,7 +640,7 @@ class Asset(NamedTuple):
             # TOTH For loop with iter_content.
             # https://stackoverflow.com/q/39846671/7657675
             retrievedAmount = 0
-            retrieveChunk = int(self.sizeBytes / 100)
+            retrieveChunk = int(self.sizeBytes / 20)
             with path.open('wb') as file:
                 for content in response.iter_content(retrieveChunk):
                     file.write(content)
