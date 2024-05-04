@@ -19,3 +19,7 @@ platformdirs==4.2.0
 # HTTP request library whose client handles the redirects and such from the
 # GitHub asset retrieval API, see https://pypi.org/project/requests/
 requests==2.31.0
+#
+# Library for human readable dates, times, and file sizes, see
+# https://pypi.org/project/humanize/
+humanize==4.9.0
