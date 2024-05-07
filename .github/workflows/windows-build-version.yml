@@ -137,7 +137,7 @@ jobs:
       with:
         tag_name: ${{env.VersionTagSpaceless}}
         name: ${{env.VersionTag}}
-        draft: false
+        draft: true
         prerelease: true
         fail_on_unmatched_files: true
         files: |
