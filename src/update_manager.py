@@ -163,10 +163,12 @@ class UpdateManager(metaclass=Singleton):
     def start(self):
         if not self._started:
             self._started = True
-            App().updateDirectory.mkdir(parents=True, exist_ok=True)
-            self.manage()
+            # Don't check for updates at launch if the diagnostic delay option
+            # is active.
+            self.manage(False if App().releaseInformationDelay > 0 else None)
 
     def manage(self, checkNow:Optional[bool] = None):
+        App().updateDirectory.mkdir(parents=True, exist_ok=True)
         with self._releasesDataLock:
             releasesChecked = self._last_fetch_from_releases_files()
         self._state.set(releasesChecked=releasesChecked)
