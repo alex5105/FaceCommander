@@ -31,6 +31,7 @@ app = Analysis(
     win_private_assemblies=False,
     cipher=block_cipher,
     noarchive=False,
+    uac_uiaccess=True,
 )
 pyz_app = PYZ(app.pure, app.zipped_data, cipher=block_cipher)
 
