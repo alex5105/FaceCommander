@@ -31,7 +31,6 @@ app = Analysis(
     win_private_assemblies=False,
     cipher=block_cipher,
     noarchive=False,
-    uac_uiaccess=True,
 )
 pyz_app = PYZ(app.pure, app.zipped_data, cipher=block_cipher)
 
@@ -52,6 +51,7 @@ exe_app = EXE(
     icon='assets/images/icon.ico',
     codesign_identity=None,
     entitlements_file=None,
+    uac_uiaccess=True,
 )
 
 
