@@ -1,11 +1,21 @@
+# Standard library imports, in alphabetical order.
+#
+# Logging module.
+# https://docs.python.org/3/library/logging.html
 import logging
-import os
 import signal
-
-import psutil
-
+#
+# PIP modules, in alphabetic order.
+#
+# Cross-platform processes module.
+# https://psutil.readthedocs.io/en/latest/
+from psutil import Process, NoSuchProcess
+#
+# Local imports.
+#
 import src.utils as utils
 from src.singleton_meta import Singleton
+from src.update_manager import UpdateManager
 
 logger = logging.getLogger("TaskKiller")
 
@@ -24,6 +34,9 @@ class TaskKiller(metaclass=Singleton):
             utils.install_fonts("assets/fonts")
 
             # Start singletons
+            from src.update_manager import UpdateManager
+            UpdateManager().start()
+
             from src.config_manager import ConfigManager
             ConfigManager().start()
 
@@ -53,14 +66,26 @@ class TaskKiller(metaclass=Singleton):
 
         utils.remove_fonts("assets/fonts")
 
-        parent = psutil.Process(os.getpid())
-        children = parent.children(recursive=True)
-        logging.info(f"Kill {parent}, {children}")
-        for c in children:
-            try:
-
-                c.send_signal(signal.SIGTERM)
-            except psutil.NoSuchProcess:
-                pass
-        parent.send_signal(signal.SIGTERM)
+        self._terminate_tree(
+            Process(), tuple(pid for pid in self._exempt_PID()))
         exit()
+
+    def _exempt_PID(self):
+        pid = UpdateManager().state.installerPID
+        if pid is not None:
+            yield pid
+
+    def _terminate_tree(self, process, exempt):
+        logger.info(f'{process=} {exempt=}')
+        if process.pid in exempt:
+            logger.info(f"Exempt {process.pid=}")
+            return
+        for child in process.children():
+            logger.info(f'Parent {process} {child=}')
+            self._terminate_tree(child, exempt)
+        logger.info(f'SIGTERM {process.pid=}')
+        try:
+            process.send_signal(signal.SIGTERM)
+        except NoSuchProcess:
+            logger.info(f'No such process {process.pid=}')
+
