@@ -40,7 +40,7 @@ Run the application.
 
     ./venv/Scripts/python.exe face_commander.py
 
-In case of difficulty or for details, see the [Developer guide](./developer.md).
+In case of difficulty or for details, see the [Developer guide](./developer/readme.md).
 
 # Configs
 ## Basic config
