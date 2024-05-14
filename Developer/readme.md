@@ -5,6 +5,11 @@ This guide has information for developer contributors to Face Commander.
 -   Build instructions.
 -   Tips for Git on Windows.
 
+There are separate guides for the following.
+
+-   [Update manager developer guide](UpdateManagerDeveloperGuide.md).
+-   [Version number developer guide](VersionNumberDeveloperGuide.md).
+
 Paths in this file have forward slash separators, not backslash. Forward slash
 is compatible with PowerShell and with bash, which is an alternative shell that
 comes with Git for Windows, see below. Backslash is only compatible with
