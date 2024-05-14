@@ -1,54 +1,75 @@
 # Update manager developer guide
-The update manager is a component of the FaceCommander software package.
+The update manager is a component of the FaceCommander software package. Its
+functions are to
 
+-   retrieve publication and status information about the running version of the
+    software.
+-   check for updates to the software.
+-   download an update installer if available.
+-   launch the downloaded installer.
 
-# Scratch pad
-Release process and the Version.ini file. Known as the running version.
-Pushing a change to the file on any branch creates a prerelease.
+This is a guide to the component for developers.
 
-UpdateManager s/u processing.
-
-
-The update manager calls a server application programming interface (API) to get
-releases information for the software. The API uses secure Hypertext Transfer
-Protocol (HTTP). The API is provided by the host of the released software,
-GitHub. The API provides information in JavaScript Object Notation (JSON)
-format.
-
-The API also provides download access to installer assets.
-
-
-General processing is that the update manager calls the API and writes the
-releases information to file storage, then reads the files.
-
-
+# Overview
+The update manager is a singleton class. Its code is in the
+[src/update_manager.py](../src/update_manager.py) file.
 
 The update manager component doesn't have any tkinter code and doesn't as such
 show any user interface (UI). However, it does generate descriptions that may be
-shown in the UI. At time of writing, update manager descriptions are shown in
-the About page.
+shown in the UI. At time of writing, update manager descriptions are shown on
+the About page. See under Update manager state descriptions, below, for details.
 
+The update manager calls a server application programming interface (API) to get
+releases information for the software. The API
 
+-   uses secure Hypertext Transfer Protocol (HTTP) for communication.
+-   is provided by the host of the released software, GitHub.
+-   provides information in JavaScript Object Notation (JSON) format.
+-   provides addresses from which installer files, referred to as assets, can be
+    downloaded.
 
+For API reference documentation see the GitHub website, for example
+here.  
+[docs.github.com/en/rest/releases/...list-releases-for-a-repository](https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#list-releases-for-a-repository)
 
+The update manager caches information retrieved from the API in the application
+data directory. See under Update manager files, below, for details.
+
+The update manager will attempt to retrieve and cache releases information from
+the API when the
+
+-   application is launched for the first time.
+-   application is launched and cached information isn't present.
+-   user selects to check for an update.
+
+After retrieval and caching, the update manager processes the releases
+information and may initiate retrieval of an update installer. See under
+Releases information data structure, and under Releases information usage, both
+below, for details.
+
+After downloading the installer, the update manager can launch it. At time of
+writing an installer will always launch in full-screen and warn the user that
+the program can make changes to their system. If the main application is
+terminated by the user while the installer is running, the installer isn't
+terminated automatically.
 
 # Update manager files
 The update manager maintains and utilises these files.
 
--   Releases information raw file, which is a copy of the latest retrieval from
-    the API. The format is JSON.
--   Releases information indented file, which has the same JSON as the raw file
-    but indented for easier human readability.
--   Releases headers file, which a JSON representation of the HTTP headers from
-    the latest retrieval.
--   Asset files, which are copies of installers downloaded from the API. Each
+-   *Releases information raw file*, which is a copy of the latest retrieval
+    from the API. The format is JSON.
+-   *Releases information indented file*, which has the same JSON as the raw
+    file but indented and with line breaks for easier human readability.
+-   *Releases headers file*, which a JSON representation of the HTTP headers
+    from the latest retrieval.
+-   *Asset files*, which are copies of installers downloaded from the API. Each
     asset file is kept in a separate directory.
 
 The releases information files are relatively small, typically under 30 kb in
 total. Asset files are relatively large, typically approaching 100 mb each.
 
-In principle, the update manager requires only one of each releases information
-file and up to one asset file at a time.
+In principle there need be only one of each releases information file and up to
+one asset file at a time.
 
 The update manager stores its files in the application data directory. The
 structure is illustrated in this diagram.
@@ -91,25 +112,33 @@ The update manager uses the following data from the releases information files.
     assumed that there has never been a check for updates.
 
 The update manager generates and maintains a description of the time of the last
-check.
+check. And see under Update manager state descriptions, below.
 
-The data structure of the raw file is an array of release information records,
-each relating to one release. These fields are used in each record.
+The data structure of the raw and indented files is an array of release
+information records, each relating to one release. These fields are used in each
+record.
 
 -   `published_at`, the time that release was published.
--   `name`, the version number of the release. The value can be matched to
-    the version number of the running software.
+
+-   `name`, the version number of the release.
+
+    The value can be matched to the version number of the running software, to
+    which the update manager has access as an application run-time component.
+    See the [Version number developer guide](VersionNumberDeveloperGuide.md) for
+    details.
+
 -   `prerelease`, a Boolean for whether the release is flagged as prerelease
     software.
+
 -   `assets`, an array of records about release assets, such as installer
     files that can be downloaded. Within each asset record, these fields are
     used.
 
     -   `name`, the file name of the asset. The value is pattern-matched to
         an expected naming convention to identify which asset to download.
-    -   `id`, a unique identifier used as the directory name for the asset
-        file if it gets downloaded.
-    -   `url`, used to download the asset in a subsequent API call.
+    -   `id`, a unique numeric identifier used in the directory name for the
+        asset file if it gets downloaded.
+    -   `url`, the address from which the asset can be downloaded.
     -   `size`, used to calculate the progress of a download.
 
 The indented file contains the same fields as the raw file but isn't read by the
@@ -138,7 +167,7 @@ The retrieved releases information is also used to determine which is the
     a diagnostic command line switch, see the Appendix: Developer support,
     below.
 
--   The release the latest published_at value is the latest release.
+-   The release with the latest published_at value is the latest release.
 
 Note that there mightn't be a latest release, for example if all current hosted
 releases are flagged as prerelease.
@@ -148,12 +177,13 @@ A download action may be taken depending on the following rules.
 -   If the running software is in development then no action is taken.
 
 -   Otherwise, if the latest release was published after the running software
-    then an installer asset is downloaded. The asset to download is chosen from
-    its `name`, see under Releases information data structure, above.
+    was published then an installer asset is downloaded. The asset to download
+    is chosen from its `name`, see under Releases information data structure,
+    above.
 
 # Update manager state descriptions
-The update manager generates descriptive messages for these aspects of the
-software's current state.
+The update manager generates descriptive messages for these aspects of its
+current state.
 
 -   `runningPublished` is a message about when the running software was
     published, if known, and its status as prerelease or in-development. See
@@ -162,7 +192,7 @@ software's current state.
 -   `releasesSummary` is a message about the when the last update check was
     made, and about any update check that is currently in progress.
     
-    For the purposes of this message an update check finishes when the releases
+    For the purposes of this message the update check finishes when the releases
     information has been retrieved. Specifically, installer download isn't part
     of the update check.
 
@@ -172,10 +202,19 @@ software's current state.
     noticed by end users. But see the Appendix: Developer support, below.
 
 -   `installerSummary` is a message for either of these cases.
-    -   If an installer download is underway now then its current progress.
-        Progress is expressed in terms of bytes downloaded, bytes total, and a
-        percentage.
-    -   If a downloaded installer has been launched and is running now.
+
+    -   An installer download is underway.
+    
+        The message will describe current progress of the download. Progress is
+        expressed in terms of bytes downloaded, bytes total, and a percentage.
+
+    -   A downloaded installer has been launched and is running now.
+    
+        This case is identified by tracking the process identifier (PID) of the
+        installer. The PID is known because the application launches the
+        installer in a separate process. If the user cancels the installation
+        then PID tracking will show that it terminated and this case no longer
+        applies.
 
     This message isn't presented as actionable in the user interface.
 
@@ -218,21 +257,33 @@ These locks are used for synchronisation.
 The software has some facilities that can be used to support development of the
 update manager.
 
+## Force retrieval and download
+You can force the application to retrieve releases information at launch by
+deleting the headers and raw releases files.
+
+You can force the application to repeat download of the latest update installer
+by deleting the installer .exe file, or by deleing the asset directory that
+contains it.
+
+You can also delete the whole update/ directory to force both retrieval and
+download at launch.
+
 ## Test harness for releases information
-If you are working on the update manager code you may want to simulate the
-response from the releases information API. These are some examples of
+If you are working on the update manager code you may want to simulate various
+responses from the releases information API. These are some examples of
 simulations you might want in a test harness.
 
 -   Change the time of the last update check.
 -   Change the publication time of a release to make it newer or older than the
     running software.
+-   Change the publication time of the running software.
 -   Change the prerelease status of a particular release.
 
 This can be done as follows.
 
 1.  Start the application and check for updates once.
 2.  Terminate the application.
-3.  Edit the releases information file to represent the response you require.
+3.  Edit the releases information files to represent the response you require.
 
     -   To change the time of the last update check, edit the headers file.
     -   To change any other value, edit the indented releases information file
