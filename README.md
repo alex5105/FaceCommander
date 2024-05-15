@@ -15,9 +15,6 @@ gestures.
 2.  Install it.
 3.  Run from your Windows shortcuts or desktop.
 
-# Download as a single portable directory
-1. Download the program from the [Release section](../../releases/).
-2. Run `facecommander.exe`
 
 # Run the code on Windows
 Paths have forward slash separators to be compatible with PowerShell and other

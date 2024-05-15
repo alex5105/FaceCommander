@@ -120,16 +120,6 @@ jobs:
     - name: Build Installer
       run: |
         iscc installer.iss
-    - name: Freeze Portable
-      run: |
-        pyinstaller --distpath dist-portable build-portable.spec
-    - name: Zip Portable
-      shell: pwsh
-      run: |
-        $Env:ZipFile = "FaceCommander-Portable-" + $Env:VersionTag + ".zip"
-        Copy-Item -Path assets -Destination dist-portable\ -Recurse
-        Copy-Item -Path configs -Destination dist-portable\ -Recurse
-        Compress-Archive -Path dist-portable -DestinationPath $Env:ZipFile
     - name: release
       uses: softprops/action-gh-release@v1
       # Reference documentation is near here.
@@ -142,4 +132,3 @@ jobs:
         fail_on_unmatched_files: true
         files: |
           Output/FaceCommander-Installer-${{env.VersionTag}}.exe
-          FaceCommander-Portable-${{env.VersionTag}}.zip
