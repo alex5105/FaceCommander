@@ -177,11 +177,8 @@ class UpdateManager(metaclass=Singleton):
             # check now. If checkNow:False was specified, don't check now.
             checkNow = True
 
-
-        # Near here, if checkNow is False then calculate how long ago the last
-        # fetch was. If it was far enough in the past then set it to true.
-
-
+        # ToDo near here, if checkNow is False then calculate how long ago the
+        # last fetch was. If it was far enough in the past then set it to true.
 
         # Clean up any finished thread.
         with self._startRetrieveLock:
@@ -380,6 +377,8 @@ class UpdateManager(metaclass=Singleton):
             logger.info("Running latest release. No installer asset download.")
             return None
 
+        # ToDo near here, manage any installers that were already downloaded.
+
         assets = releases[latestIndex]['assets']
         for asset in assets:
             name = asset['name']
@@ -408,19 +407,6 @@ class UpdateManager(metaclass=Singleton):
         if name.startswith(VERSION_NAME_PREFIX):
             name = name[len(VERSION_NAME_PREFIX):]
         return (name == App().version), release['prerelease'], name
-
-
-        # Near here, manage any installers that were already downloaded.
-        #
-        # File structure should be like this.
-        #
-        # update/
-        # |
-        # +--- assetNNNNN
-        # |    |
-        # |    +--- FaceCommander-installer...exe
-        # |
-        # +--- download.json
 
     def launch_installer(self):
         installerPath = self._state.get().installerPath

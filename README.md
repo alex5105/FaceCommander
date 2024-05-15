@@ -17,6 +17,9 @@ gestures.
 
 
 # Run the code on Windows
+Paths have forward slash separators to be compatible with PowerShell and other
+command line interpreters.
+
 1.  Install Python 3.10 for Windows, from here for example.  
     [python.org/downloads/release/python-31011/](https://www.python.org/downloads/release/python-31011/)
 
@@ -27,14 +30,15 @@ gestures.
 
 3.  Install the required PIP modules into the venv.
 
-        .\venv\Scripts\python.exe -m pip install --upgrade pip
-        .\venv\Scripts\python.exe -m pip install -r .\requirements.txt
+        ./venv/Scripts/python.exe -m pip install --upgrade pip
+        ./venv/Scripts/python.exe -m pip install -r ./requirements.txt
 
 Run the application.
 
-    .\venv\Scripts\python.exe face_commander.py
+    ./venv/Scripts/python.exe face_commander.py
 
-In case of difficulty or for details, see the [Developer guide](./developer.md).
+In case of difficulty or for details, see the
+[Developer guide](./Developer/readme.md).
 
 # Configs
 ## Basic config
