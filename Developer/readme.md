@@ -5,6 +5,16 @@ This guide has information for developer contributors to Face Commander.
 -   Build instructions.
 -   Tips for Git on Windows.
 
+There are separate guides for the following.
+
+-   [Update manager developer guide](UpdateManagerDeveloperGuide.md).
+-   [Version number developer guide](VersionNumberDeveloperGuide.md).
+
+Paths in this file have forward slash separators, not backslash. Forward slash
+is compatible with PowerShell and with bash, which is an alternative shell that
+comes with Git for Windows, see below. Backslash is only compatible with
+PowerShell.
+
 # Getting started
 Follow these instructions to get started as a developer for this project.
 
@@ -37,22 +47,22 @@ Follow these instructions to get started as a developer for this project.
         python -m venv venv
 
     Going forwards, you will run Python like this.  
-    `.\venv\Scripts\python.exe `... other command line options ...
+    `./venv/Scripts/python.exe` ... other command line options ...
 
 4.  Install the required PIP modules.
 
     Run commands like these to update PIP and then install the required modules.
 
         cd /path/where/you/cloned/FaceCommander
-        .\venv\Scripts\python.exe -m pip install --upgrade pip
-        .\venv\Scripts\python.exe -m pip install -r .\requirements.txt
+        ./venv/Scripts/python.exe -m pip install --upgrade pip
+        ./venv/Scripts/python.exe -m pip install -r ./requirements.txt
 
 5.  Run the program.
 
     Run commands like this.
 
         cd /path/where/you/cloned/FaceCommander
-        .\venv\Scripts\python.exe face_commander.py
+        ./venv/Scripts/python.exe face_commander.py
 
 The program should start. Its print logging should appear in the terminal or
 Powershell session.
@@ -81,7 +91,7 @@ Proceed as follows.
     Run commands like this
 
         cd /path/where/you/cloned/FaceCommander
-        .\venv\Scripts\pyinstaller.exe .\build.spec
+        ./venv/Scripts/pyinstaller.exe ./build.spec
     
     That creates a `build/` and a `dist/` sub-directory.
     
@@ -89,7 +99,7 @@ Proceed as follows.
     delete them before proceeding. You can suppress the prompt by running a
     command like this instead.
 
-        .\venv\Scripts\pyinstaller.exe --noconfirm .\build.spec
+        ./venv/Scripts/pyinstaller.exe --noconfirm ./build.spec
 
 2.  Test the executable.
 
@@ -126,7 +136,7 @@ You can activate OpenSSH in Windows 10 as described here.
 
 You can then set up a private key for GitHub authentication and configure SSH in
 the usual way, by creating a `.ssh` sub-directory under your `users` directory,
-for example `C:\Users\Jim\.ssh`. For example, you could create a `config` file
+for example `C:/Users/Jim/.ssh`. For example, you could create a `config` file
 there with these settings.
 
     Host github.com
@@ -169,3 +179,16 @@ You can check the value has been set by printing all environment variables. To
 do that run a command like this.
 
     get-childitem env:
+
+Git for Windows comes with a command line shell, `bash`, which you may prefer to
+use instead of PowerShell. Here are some tips for bash for Windows.
+
+-   To open a directory in Windows file explorer from bash, you can use the
+    `start` command. For example this command will open the current working
+    directory.
+
+        start .
+
+-   You can select to set bash as the default shell in VSCode and VSCodium, see
+    this StackOverflow answer.  
+    [stackoverflow.com/a/50527994/7657675](https://stackoverflow.com/a/50527994/7657675)
