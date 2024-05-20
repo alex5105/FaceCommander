@@ -51,6 +51,7 @@ exe_app = EXE(
     icon='assets/images/icon.ico',
     codesign_identity=None,
     entitlements_file=None,
+    uac_uiaccess=True,
 )
 
 

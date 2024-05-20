@@ -1,0 +1,66 @@
+name: Release Latest
+
+# This can only be manually triggered, this is because this flow runs
+# on a custom Github Runner that runs inside Ace Centre and has access
+# to our signing key. As such we want this entire flow to access as
+# little as possible and be triggered manually to avoid any bad actors
+# abusing the workflow
+on: [workflow_dispatch]
+
+jobs:
+  GetVersion:
+    runs-on: ubuntu-latest
+    outputs:
+      VersionNumber: ${{ steps.get_version_number.outputs.VersionNumber }}
+      VersionNumberSpaceless: ${{ steps.get_version_number.outputs.VersionNumberSpaceless }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      - name: Get version number
+        id: get_version_number
+        run: |
+          python src/utils/readini.py\
+              assets/Version.ini Release VersionNumber >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
+
+  BuildExecutable:
+    runs-on: windows-latest
+    needs: [GetVersion]
+    env:
+      VersionTag: v${{needs.GetVersion.outputs.VersionNumber}}
+      VersionTagSpaceless: v${{needs.GetVersion.outputs.VersionNumberSpaceless}}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          python -m pip install -upgrade pip
+          pip install -r requirements.txt
+      - name: Freeze Installer
+        run: pyinstaller build.spec
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: InitialBuild
+          path: build
+          retention-days: 1
+
+  SignExecutable:
+    runs-on: self-hosted
+    needs: [BuildExecutable]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: IntialBuild
+          path: build
