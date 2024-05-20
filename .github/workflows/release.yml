@@ -64,3 +64,47 @@ jobs:
         with:
           name: InitialBuild
           path: build
+      - name: Sign Executable
+        run: \& 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe' sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a .\build\build\facecommander.exe
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: SignedBuild
+          path: build
+          retention-days: 1
+
+  BuildInstaller:
+    runs-on: windows-latest
+    needs: [BuildExecutable]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: SignedBuild
+          path: build
+      - name: Build Installer
+        run: iscc installer.iss
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: SignedInstaller
+          path: Output
+          retention-days: 1
+
+  SignInstaller:
+    runs-on: self-hosted
+    needs: [BuildInstaller]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: SignedInstaller
+          path: Output
+      # - name: Sign Executable
+      #   run: \& 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe' sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a .\build\build\facecommander.exe
+      # - name: Upload build
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: SignedBuild
+      #     path: build
+      #     retention-days: 1
