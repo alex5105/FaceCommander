@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: InitialBuild
-          path: build
+          path: dist
           retention-days: 1
 
   SignExecutable:
@@ -63,14 +63,14 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: InitialBuild
-          path: build
+          path: dist
       - name: Sign Executable
-        run: signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a .\build\build\facecommander.exe
+        run: signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a .\dist\facecommander\facecommander.exe
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
           name: SignedBuild
-          path: build
+          path: dist
           retention-days: 1
 
   BuildInstaller:
@@ -81,7 +81,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: SignedBuild
-          path: build
+          path: dist
       - name: Build Installer
         run: iscc installer.iss
       - name: Upload installer
@@ -92,19 +92,23 @@ jobs:
           retention-days: 1
 
   SignInstaller:
+    env:
+      # Convenience variables with v prefix and short name.
+      VersionTag: v${{needs.GetVersion.outputs.VersionNumber}}
+      VersionTagSpaceless: v${{needs.GetVersion.outputs.VersionNumberSpaceless}}
     runs-on: self-hosted
-    needs: [BuildInstaller]
+    needs: [BuildInstaller, GetVersion]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: SignedInstaller
           path: Output
-      # - name: Sign Executable
-      #   run: \& 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe' sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a .\build\build\facecommander.exe
-      # - name: Upload build
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: SignedBuild
-      #     path: build
-      #     retention-days: 1
+      - name: Sign Executable
+        run: signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a ./Output/FaceCommander-Installer-${{env.VersionTag}}.exe
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: SignedInstaller
+          path: Output
+          retention-days: 1
