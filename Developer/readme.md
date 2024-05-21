@@ -1,14 +1,16 @@
 # Developer guide
+
 This guide has information for developer contributors to Face Commander.
 
--   Getting started.
--   Build instructions.
--   Tips for Git on Windows.
+- Getting started.
+- Build instructions.
+- Tips for Git on Windows.
 
 There are separate guides for the following.
 
--   [Update manager developer guide](UpdateManagerDeveloperGuide.md).
--   [Version number developer guide](VersionNumberDeveloperGuide.md).
+- [Update manager developer guide](UpdateManagerDeveloperGuide.md).
+- [Version number developer guide](VersionNumberDeveloperGuide.md).
+- [Release and sign developer guide](ReleaseAndSignDeveloperGuide.md).
 
 Paths in this file have forward slash separators, not backslash. Forward slash
 is compatible with PowerShell and with bash, which is an alternative shell that
@@ -16,6 +18,7 @@ comes with Git for Windows, see below. Backslash is only compatible with
 PowerShell.
 
 # Getting started
+
 Follow these instructions to get started as a developer for this project.
 
 1.  Install Python 3.10 for Windows.
@@ -32,7 +35,7 @@ Follow these instructions to get started as a developer for this project.
 
         > python --version
         Python 3.10.11
-    
+
     If you don't then restart Powershell or VSCode or VSCodium, or the whole
     machine. Or check the PATH environment variable.
 
@@ -68,21 +71,22 @@ The program should start. Its print logging should appear in the terminal or
 Powershell session.
 
 # Build instructions
+
 A Windows executable and installer can be built for this application. This type
-of executable is sometimes referred to as a *frozen* Python application.
+of executable is sometimes referred to as a _frozen_ Python application.
 
 To build the executable and installer you will need these tools.
 
--   [PyInstaller](https://pyinstaller.org/) for the executable.  
-    It will already have been installed into the venv, see above, because it is
-    listed in the [requirements.txt](requirements.txt) file.
+- [PyInstaller](https://pyinstaller.org/) for the executable.  
+  It will already have been installed into the venv, see above, because it is
+  listed in the [requirements.txt](requirements.txt) file.
 
--   [Inno Setup](https://jrsoftware.org/isinfo.php) for the installer.  
-    It can be obtained from their
-    [downloads page](https://jrsoftware.org/isdl.php#stable). Look for
-    `innosetup-X.X.X.exe` where X.X.X is at least the 6.2.2 version. The
-    download will install the Inno Setup Compiler application, which is an
-    installer builder.
+- [Inno Setup](https://jrsoftware.org/isinfo.php) for the installer.  
+  It can be obtained from their
+  [downloads page](https://jrsoftware.org/isdl.php#stable). Look for
+  `innosetup-X.X.X.exe` where X.X.X is at least the 6.2.2 version. The
+  download will install the Inno Setup Compiler application, which is an
+  installer builder.
 
 Proceed as follows.
 
@@ -92,9 +96,9 @@ Proceed as follows.
 
         cd /path/where/you/cloned/FaceCommander
         ./venv/Scripts/pyinstaller.exe ./build.spec
-    
+
     That creates a `build/` and a `dist/` sub-directory.
-    
+
     Tip: If those sub-directories already exist you will be prompted whether to
     delete them before proceeding. You can suppress the prompt by running a
     command like this instead.
@@ -128,6 +132,7 @@ by double-clicking.
 That concludes building the executable and installer.
 
 # Tips for Git on Windows
+
 Git for Windows can be installed with winget as described here.  
 [git-scm.com/download/win](https://git-scm.com/download/win)
 
@@ -183,12 +188,12 @@ do that run a command like this.
 Git for Windows comes with a command line shell, `bash`, which you may prefer to
 use instead of PowerShell. Here are some tips for bash for Windows.
 
--   To open a directory in Windows file explorer from bash, you can use the
-    `start` command. For example this command will open the current working
-    directory.
+- To open a directory in Windows file explorer from bash, you can use the
+  `start` command. For example this command will open the current working
+  directory.
 
-        start .
+      start .
 
--   You can select to set bash as the default shell in VSCode and VSCodium, see
-    this StackOverflow answer.  
-    [stackoverflow.com/a/50527994/7657675](https://stackoverflow.com/a/50527994/7657675)
+- You can select to set bash as the default shell in VSCode and VSCodium, see
+  this StackOverflow answer.  
+  [stackoverflow.com/a/50527994/7657675](https://stackoverflow.com/a/50527994/7657675)
