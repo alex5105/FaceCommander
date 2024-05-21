@@ -112,3 +112,38 @@ jobs:
           name: SignedInstaller
           path: Output
           retention-days: 1
+
+  Release:
+    env:
+      # Convenience variables with v prefix and short name.
+      VersionTag: v${{needs.GetVersion.outputs.VersionNumber}}
+      VersionTagSpaceless: v${{needs.GetVersion.outputs.VersionNumberSpaceless}}
+    runs-on: self-hosted
+    needs: [SignInstaller, GetVersion]
+    steps:
+      - name: Create tag
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: "refs/tags/${{env.VersionTagSpaceless}}",
+              sha: context.sha
+            })
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: SignedInstaller
+          path: Output
+
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{env.VersionTagSpaceless}}
+          name: ${{env.VersionTag}}
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
+          files: |
+            Output/FaceCommander-Installer-${{env.VersionTag}}.exe
