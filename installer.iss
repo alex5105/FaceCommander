@@ -40,7 +40,7 @@ AppVersion={#IniVersion}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
-PrivilegesRequired=lowest
+;PrivilegesRequired=lowest
 OutputBaseFilename=FaceCommander-Installer-v{#IniVersion}
 SetupIconFile=assets\images\icon.ico
 Compression=lzma
