@@ -47,7 +47,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Freeze Installer
-        run: pyinstaller build.spec
+        run: pyinstaller build-signed.spec
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:

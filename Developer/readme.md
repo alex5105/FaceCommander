@@ -95,7 +95,7 @@ Proceed as follows.
     Run commands like this
 
         cd /path/where/you/cloned/FaceCommander
-        ./venv/Scripts/pyinstaller.exe ./build.spec
+        ./venv/Scripts/pyinstaller.exe ./build-unsigned.spec
 
     That creates a `build/` and a `dist/` sub-directory.
 
@@ -103,7 +103,7 @@ Proceed as follows.
     delete them before proceeding. You can suppress the prompt by running a
     command like this instead.
 
-        ./venv/Scripts/pyinstaller.exe --noconfirm ./build.spec
+        ./venv/Scripts/pyinstaller.exe --noconfirm ./build-unsigned.spec
 
 2.  Test the executable.
 
