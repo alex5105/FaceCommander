@@ -91,6 +91,9 @@ class MouseController(metaclass=Singleton):
         """ Separate thread for mouse controller          
         """
 
+        # Sleep to allow the UI to get up and running before we start looping
+        time.sleep(2)
+
         if self.is_destroyed:
             return
 
