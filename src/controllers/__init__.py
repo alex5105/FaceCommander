@@ -1,3 +1,2 @@
-__all__ = ['Keybinder', 'MouseController']
+__all__ = ['Keybinder']
 from .keybinder import Keybinder
-from .mouse_controller import MouseController
