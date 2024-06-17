@@ -10,9 +10,9 @@ import customtkinter
 from src.app import App
 from src.update_manager import UpdateManager
 from src.gui import frames
-from src.controllers import Keybinder, MouseController
+from src.controllers import Keybinder
 from src.gui.pages import (
-    PageSelectCamera, PageCursor, PageSelectGestures, PageKeyboard, PageAbout)
+    PageSelectCamera, PageKeyboard, PageAbout)
 
 customtkinter.set_appearance_mode("light")
 customtkinter.set_default_color_theme("assets/themes/google_theme.json")
@@ -74,8 +74,6 @@ class MainGui():
         # Create all wizard pages and grid them.
         self.pages = [
             PageSelectCamera(master=self.tk_root,),
-            PageCursor(master=self.tk_root,),
-            PageSelectGestures(master=self.tk_root,),
             PageKeyboard(master=self.tk_root,),
             PageAbout(tkRoot=self.tk_root, updateHost=self)
         ]
@@ -126,10 +124,8 @@ class MainGui():
     def set_mediapipe_mouse_enable(self, new_state: bool):
         if new_state:
             Keybinder().set_active(True)
-            MouseController().set_active(True)
         else:
             Keybinder().set_active(False)
-            MouseController().set_active(False)
 
     def change_page(self, target_page_name: str):
 
