@@ -2,7 +2,6 @@ flatbuffers==2.0.0
 matplotlib==3.7.1
 opencv-contrib-python==4.8.1.78
 psutil==5.9.4
-pyautogui==0.9.53
 customtkinter==5.2.0
 mediapipe==0.9.3.0
 PyDirectInput==1.0.4;  sys_platform == 'win32'
