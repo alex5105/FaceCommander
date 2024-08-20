@@ -16,6 +16,11 @@ pydirectinput = "^1.0.4"
 pygrabber = "^0.2"
 pyinstaller = "^6.10.0"
 pillow = "^10.4.0"
+platformdirs = "^4.2.2"
+humanize = "^4.10.0"
+requests = "^2.32.3"
+pywin32 = "^306"
+psutil = "^6.0.0"
 
 [tool.poetry.group.dev.dependencies]
 opencv-contrib-python = "^4.10.0.84"
