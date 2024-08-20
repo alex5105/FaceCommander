@@ -5,6 +5,7 @@ description = "A fork of gameface. Control the cursor with your face and keypres
 authors = ["will wade <willwade@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.14"
@@ -21,6 +22,9 @@ requests = "^2.32.3"
 pywin32 = { version = "306", markers = "sys_platform == 'win32'" }
 psutil = "^6.0.0"
 pyinstaller = "^6.10.0"
+
+[tool.poetry.dev-dependencies]
+ruff = "^0.0.287"
 
 [tool.poetry.group.dev.dependencies]
 opencv-contrib-python = "^4.10.0.84"
