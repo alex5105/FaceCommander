@@ -10,13 +10,14 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: "3.10"
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "::add-path::${HOME}/.local/bin"
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install ruff
-      - name: Analysing the code with ruff
-        run: |
-          ruff check .
+          poetry install
+          poetry run ruff check .
 
   GetVersion:
     runs-on: ubuntu-latest
@@ -33,10 +34,18 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "::add-path::${HOME}/.local/bin"
+      
+      - name: Install dependencies
+        run: poetry install
+      
       - name: Get version number
         id: get_version_number
         run: |
-          python src/utils/readini.py\
+          poetry run python src/utils/readini.py\
               assets/Version.ini Release VersionNumber >> "$GITHUB_OUTPUT"
           cat "$GITHUB_OUTPUT"
 
@@ -52,14 +61,20 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-      - name: Install dependencies
+
+      - name: Install Poetry
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+          $env:Path += ";$env:USERPROFILE\.local\bin"
+
+      - name: Install dependencies
+        run: poetry install
+
       - name: Freeze Installer
-        run: pyinstaller build-unsigned.spec
+        run: poetry run pyinstaller build-unsigned.spec
+
       - name: Build Installer
-        run: iscc installer.iss
+        run: poetry run iscc installer.iss
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
