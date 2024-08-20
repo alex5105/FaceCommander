@@ -463,9 +463,15 @@ files = [
 [package.dependencies]
 jaxlib = ">=0.4.30,<=0.4.31"
 ml-dtypes = ">=0.2.0"
-numpy = {version = ">=1.26.0", markers = "python_version >= \"3.12\""}
+numpy = [
+    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
+    {version = ">=1.24", markers = "python_version < \"3.12\""},
+]
 opt-einsum = "*"
-scipy = {version = ">=1.11.1", markers = "python_version >= \"3.12\""}
+scipy = [
+    {version = ">=1.11.1", markers = "python_version >= \"3.12\""},
+    {version = ">=1.10", markers = "python_version < \"3.12\""},
+]
 
 [package.extras]
 ci = ["jaxlib (==0.4.30)"]
@@ -503,7 +509,10 @@ files = [
 [package.dependencies]
 ml-dtypes = ">=0.2.0"
 numpy = ">=1.24"
-scipy = {version = ">=1.11.1", markers = "python_version >= \"3.12\""}
+scipy = [
+    {version = ">=1.11.1", markers = "python_version >= \"3.12\""},
+    {version = ">=1.10", markers = "python_version < \"3.12\""},
+]
 
 [[package]]
 name = "kiwisolver"
@@ -763,7 +772,10 @@ files = [
 ]
 
 [package.dependencies]
-numpy = {version = ">=1.26.0", markers = "python_version >= \"3.12\""}
+numpy = [
+    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
+    {version = ">=1.23.3", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
+]
 
 [package.extras]
 dev = ["absl-py", "pyink", "pylint (>=2.6.0)", "pytest", "pytest-xdist"]
@@ -846,7 +858,10 @@ files = [
 ]
 
 [package.dependencies]
-numpy = {version = ">=1.26.0", markers = "python_version >= \"3.12\""}
+numpy = [
+    {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
+    {version = ">=1.23.5", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
+]
 
 [[package]]
 name = "opt-einsum"
@@ -1327,5 +1342,5 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.12,<3.14"
-content-hash = "e61cb39e244de0605263954f1782f322228e94ac9251c8a7b9b36cfa9066c747"
+python-versions = ">=3.11,<3.14"
+content-hash = "4f5206f33bf5fd09f86b9a9623b3a4aecf3a436e9ed42564c446a94d6b98d5ec"
