@@ -7,20 +7,20 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.14"
+python = ">=3.10,<3.14"
 flatbuffers = "^24.3.25"
 matplotlib = "^3.9.2"
 customtkinter = "^5.2.2"
 mediapipe = "^0.10.14"
-pydirectinput = "^1.0.4"
-pygrabber = "^0.2"
-pyinstaller = "^6.9.0"
+pydirectinput = { version = "1.0.4", markers = "sys_platform == 'win32'" }
+pygrabber = { version = "0.2", markers = "sys_platform == 'win32'" }
 pillow = "^10.4.0"
 platformdirs = "^4.2.2"
 humanize = "^4.10.0"
 requests = "^2.32.3"
-pywin32 = "^306"
+pywin32 = { version = "306", markers = "sys_platform == 'win32'" }
 psutil = "^6.0.0"
+pyinstaller = "^6.10.0"
 
 [tool.poetry.group.dev.dependencies]
 opencv-contrib-python = "^4.10.0.84"
