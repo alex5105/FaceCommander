@@ -104,7 +104,10 @@ if __name__ == "__main__":
         try:
             if progPath.samefile(arg):
                 # TOTH https://stackoverflow.com/a/54443527/7657675
-                executable = Path(sys_executable).relative_to(Path.cwd())
+                try:
+                    executable = Path(sys_executable).relative_to(Path.cwd())
+                except ValueError:
+                    executable = Path(sys_executable)  # Use absolute path if not relative.
                 cli['prog'] = " ".join([str(executable),] + argv[0:index + 1])
                 break
         except FileNotFoundError:
