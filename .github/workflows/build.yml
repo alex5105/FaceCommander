@@ -13,7 +13,7 @@ jobs:
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
-          echo "::add-path::${HOME}/.local/bin"
+          echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: Install dependencies
         run: |
           poetry install
@@ -37,7 +37,7 @@ jobs:
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
-          echo "::add-path::${HOME}/.local/bin"
+          echo "${HOME}/.local/bin" >> $GITHUB_PATH
       
       - name: Install dependencies
         run: poetry install
@@ -65,7 +65,7 @@ jobs:
       - name: Install Poetry
         run: |
           (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
-          $env:Path += ";$env:USERPROFILE\.local\bin"
+          echo "$env:USERPROFILE\.local\bin" >> $env:GITHUB_PATH
 
       - name: Install dependencies
         run: poetry install
