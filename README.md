@@ -15,30 +15,94 @@ gestures.
 2.  Install it.
 3.  Run from your Windows shortcuts or desktop.
 
+# Development Setup and Running the Application
+## Prerequisites
 
-# Run the code on Windows
-Paths have forward slash separators to be compatible with PowerShell and other
-command line interpreters.
+1. **Install Python 3.10** (or higher) for Windows from the [official Python website](https://www.python.org/downloads/release/python-31011/).
 
-1.  Install Python 3.10 for Windows, from here for example.  
-    [python.org/downloads/release/python-31011/](https://www.python.org/downloads/release/python-31011/)
+2. **Install Poetry** if you don't have it already. You can install Poetry by running:
 
-2.  Create a Python virtual environment (venv).
+    ```sh
+    curl -sSL https://install.python-poetry.org | python3 -
+    ```
 
-        cd /path/where/you/cloned/FaceCommander
-        python -m venv venv
+    Alternatively, on Windows, you can use:
 
-3.  Install the required PIP modules into the venv.
+    ```sh
+    (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+    ```
 
-        ./venv/Scripts/python.exe -m pip install --upgrade pip
-        ./venv/Scripts/python.exe -m pip install -r ./requirements.txt
+    Ensure that Poetry is available in your PATH. You can verify this by running:
 
-Run the application.
+    ```sh
+    poetry --version
+    ```
 
-    ./venv/Scripts/python.exe face_commander.py
+## Setting Up the Development Environment
 
-In case of difficulty or for details, see the
-[Developer guide](./Developer/readme.md).
+1. **Clone the Repository** if you haven't already:
+
+    ```sh
+    git clone https://github.com/AceCentre/FaceCommander.git
+    cd FaceCommander
+    ```
+
+2. **Create a Virtual Environment and Install Dependencies**:
+
+    Poetry automatically handles virtual environments, so you don't need to manually create one. Simply run:
+
+    ```sh
+    poetry install
+    ```
+
+    This command will:
+    
+    - Create a virtual environment in the `.venv` directory within your project.
+    - Install all dependencies listed in `pyproject.toml` and lock them in `poetry.lock`.
+
+3. **Activate the Virtual Environment** (if needed):
+
+    While Poetry typically handles this automatically, you can activate the virtual environment manually if required:
+
+    ```sh
+    poetry shell
+    ```
+
+## Running the Application
+
+1. **Run the Application**:
+
+    With the virtual environment active, you can run the application directly:
+
+    ```sh
+    poetry run python face_commander.py
+    ```
+
+    This ensures that the Python interpreter and dependencies used are from the Poetry-managed environment.
+
+## Additional Tips
+
+- **Adding Dependencies**: To add new dependencies, use:
+
+    ```sh
+    poetry add <package_name>
+    ```
+
+- **Updating Dependencies**: To update all dependencies to their latest versions (within the constraints defined):
+
+    ```sh
+    poetry update
+    ```
+
+- **Exiting the Virtual Environment**: To exit the Poetry shell (virtual environment), simply type:
+
+    ```sh
+    exit
+    ```
+
+## Troubleshooting
+
+If you encounter any issues, refer to the [Developer Guide](./Developer/readme.md) for detailed instructions and troubleshooting tips.
 
 # Configs
 ## Basic config

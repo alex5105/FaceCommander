@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "facecommander"
+version = "0.1.0"
+description = "A fork of gameface. Control the cursor with your face and keypresses with facial gestures"
+authors = ["will wade <willwade@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.14"
+flatbuffers = "^24.3.25"
+matplotlib = "^3.9.2"
+customtkinter = "^5.2.2"
+mediapipe = "^0.10.14"
+pydirectinput = "^1.0.4"
+pygrabber = "^0.2"
+pyinstaller = "^6.10.0"
+pillow = "^10.4.0"
+
+[tool.poetry.group.dev.dependencies]
+opencv-contrib-python = "^4.10.0.84"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
