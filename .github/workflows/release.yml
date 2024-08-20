@@ -54,7 +54,7 @@ jobs:
       - name: Install Poetry
         run: |
           (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
-          $env:Path += ";$env:USERPROFILE\.local\bin"
+          echo "C:\Users\runneradmin\AppData\Roaming\Python\Scripts" >> $env:GITHUB_PATH
 
       - name: Install dependencies
         run: poetry install
