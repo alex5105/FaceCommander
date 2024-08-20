@@ -59,31 +59,33 @@ class Dropdown():
 
     def create_divs(self, master, ges_images: dict, width: int) -> dict:
         divs = {}
+
+        # Create a scrollable frame
+        scrollable_frame_width = width + 20 
+        scrollable_frame = customtkinter.CTkScrollableFrame(master, width=scrollable_frame_width)
+        scrollable_frame.pack(fill="both", expand=True)
+
         for row, (gesture, image_path) in enumerate(ges_images.items()):
             image = customtkinter.CTkImage(
                 Image.open(image_path).resize(ICON_SIZE), size=ICON_SIZE)
 
-            # Label ?
-            row_btn = customtkinter.CTkButton(master=master,
-                                              width=width,
-                                              height=ITEM_HEIGHT,
-                                              text=gesture,
-                                              border_width=0,
-                                              corner_radius=0,
-                                              image=image,
-                                              hover=True,
-                                              fg_color=LIGHT_BLUE,
-                                              hover_color="gray90",
-                                              text_color_disabled="gray80",
-                                              compound="left",
-                                              anchor="nw")
+            row_btn = customtkinter.CTkButton(
+                master=scrollable_frame,  # Add button to the scrollable frame
+                width=width,
+                height=ITEM_HEIGHT,
+                text=gesture,
+                border_width=0,
+                corner_radius=0,
+                image=image,
+                hover=True,
+                fg_color=LIGHT_BLUE,
+                hover_color="gray90",
+                text_color_disabled="gray80",
+                compound="left",
+                anchor="nw"
+            )
 
-            row_btn.grid(row=row,
-                         column=0,
-                         padx=(0, 0),
-                         pady=(0, 0),
-                         sticky="nsew")
-
+            row_btn.grid(row=row, column=0, padx=(0, 0), pady=(0, 0), sticky="nsew")
             divs[gesture] = {"button": row_btn, "image": image}
 
         return divs
