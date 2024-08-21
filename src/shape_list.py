@@ -25,6 +25,7 @@ blendshape_names = [
     "cheekSquintLeft",
     "Eye blink right",
     "Eye blink left",
+    "Eye blink",
     "eyeLookDownRight",
     "eyeLookDownLeft",
     "eyeLookInRight",
@@ -85,6 +86,7 @@ available_gestures = {
         "None",
         "Eye blink right",
         "Eye blink left",
+        "Eye Blink,"
         "Open mouth",
         "Mouth left",
         "Mouth right",
