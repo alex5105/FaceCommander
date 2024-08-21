@@ -86,7 +86,7 @@ available_gestures = {
         "None",
         "Eye blink right",
         "Eye blink left",
-        "Eye Blink",
+        "Eye blink",
         "Open mouth",
         "Mouth left",
         "Mouth right",
