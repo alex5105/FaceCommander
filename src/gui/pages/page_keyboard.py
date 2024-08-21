@@ -274,6 +274,23 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
                           pady=(158, 10),
                           sticky="nw")
         subtle_label.grid_remove()
+        
+        # Blink Detection Threshold Slider
+        blink_threshold_slider = customtkinter.CTkSlider(
+            master=self,
+            from_=0.1,
+            to=1.0,
+            width=DIV_WIDTH + 10,
+            number_of_steps=100,
+            command=partial(self.blink_threshold_slider_callback, div_name)
+        )
+        blink_threshold_slider.set(thres)  # Set initial value based on current threshold
+        blink_threshold_slider.grid(row=row,
+                                    column=0,
+                                    padx=PAD_X - 5,
+                                    pady=(200, 10),  # Adjust padding as needed
+                                    sticky="nw")
+        
 
         # Trigger dropdown
         trigger_list = [t.value for t in Trigger]
@@ -301,7 +318,8 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
             "selected_gesture": gesture_name,
             "selected_key_action": key_action,
             "remove_button": remove_button,
-            "trigger_dropdown": trigger_dropdown
+            "trigger_dropdown": trigger_dropdown,
+            "blink_threshold_slider": blink_threshold_slider
         }
 
     def set_new_keyboard_binding(self, div):
@@ -413,6 +431,13 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         div["selected_gesture"] = target_gesture
         div["combobox"].set(target_gesture)
 
+        # Show or hide blink threshold slider based on the selected gesture
+        if target_gesture == "Eye Blink":  # Change this to the appropriate gesture name
+            div["blink_threshold_slider"].grid()  # Show the slider
+        else:
+            div["blink_threshold_slider"].grid_remove()  # Hide the slider
+    
+
         if target_gesture != "None":
             div["slider"].grid()
             div["volume_bar"].grid()
@@ -438,6 +463,15 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
             div = self.divs[div_name]
             if "entry_var" in div:
                 div["entry_var"].set(new_value)
+
+    def blink_threshold_slider_callback(self, div_name: str, new_value: float):
+        """Update the blink detection threshold based on slider value"""
+        if div_name in self.divs:
+            div = self.divs[div_name]
+            div["blink_threshold_slider"].set(new_value)
+            # Update the configuration or detection logic with the new threshold
+            self.update_blink_threshold(new_value)
+    
 
     def slider_mouse_down_callback(self, div_name: str, event):
         self.slider_dragging = True

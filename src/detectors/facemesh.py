@@ -134,6 +134,35 @@ class FaceMesh(metaclass=Singleton):
     def get_blendshapes(self) -> npt.ArrayLike:
         return self.smooth_blendshapes
 
+    def detect_eye_blink(self):
+        """Calculate EAR and determine if a blink is detected."""
+        if self.mp_landmarks is None:
+            return 0.0  # No landmarks detected, return 0 or similar default value
+
+        # Define landmark indices for the eyes
+        right_eye_landmarks = [self.mp_landmarks[33], self.mp_landmarks[133], self.mp_landmarks[159], self.mp_landmarks[145]]
+        left_eye_landmarks = [self.mp_landmarks[362], self.mp_landmarks[263], self.mp_landmarks[386], self.mp_landmarks[374]]
+
+        # Calculate EAR for both eyes
+        re_ratio = self.calculate_ear(right_eye_landmarks)
+        le_ratio = self.calculate_ear(left_eye_landmarks)
+
+        # Combine EAR values (average or other logic)
+        ear_value = (re_ratio + le_ratio) / 2
+
+        return ear_value
+
+    def calculate_ear(self, eye_landmarks):
+        """Calculate the Eye Aspect Ratio (EAR) for an eye."""
+        rh_distance = self.euclidean_distance(eye_landmarks[0], eye_landmarks[1])
+        rv_distance = self.euclidean_distance(eye_landmarks[2], eye_landmarks[3])
+        ear = rh_distance / rv_distance
+        return ear
+
+    def euclidean_distance(self, point1, point2):
+        """Calculate the Euclidean distance between two points."""
+        return np.sqrt((point1.x - point2.x) ** 2 + (point1.y - point2.y) ** 2)
+
     def destroy(self):
         if self.model is not None:
             self.model.close()
