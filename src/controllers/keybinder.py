@@ -322,7 +322,7 @@ class Keybinder(metaclass=Singleton):
 
         for shape_name, v in (ConfigManager().mouse_bindings |
                               ConfigManager().keyboard_bindings).items():
-            if shape_name == "Eye Blink":
+            if shape_name == "Eye blink":
                 # Replace this with the actual EAR detection method
                 val = FaceMesh().detect_eye_blink()  # This should be the EAR ratio or a similar value
             else:
