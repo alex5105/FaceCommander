@@ -32,7 +32,7 @@ class Keybinder(metaclass=Singleton):
         logger.info("Initialize Keybinder singleton")
         self.top_count = 0
         self.blink_count = 0
-        self.start_hold_ts = {}
+        self.start_hold_ts = {} 
         self.holding = {}
         self.is_started = False
         self.last_know_keybindings = {}
