@@ -31,6 +31,7 @@ class Keybinder(metaclass=Singleton):
         self.screen_w = None
         logger.info("Initialize Keybinder singleton")
         self.top_count = 0
+        self.blink_count = 0
         self.start_hold_ts = {}
         self.holding = {}
         self.is_started = False
@@ -326,7 +327,7 @@ class Keybinder(metaclass=Singleton):
             if shape_name not in shape_list.blendshape_names:
                 continue
 
-            device, action, threshold, mode = v
+            device, action, threshold, mode, time_threshold = v
             mode = Trigger(mode.lower())
             # Get blendshape value
             idx = shape_list.blendshape_indices[shape_name]
@@ -336,12 +337,23 @@ class Keybinder(metaclass=Singleton):
                 self.meta_action(val, action, threshold, self.is_active.get())
             
             if self.is_active.get():
+                if "blink" in shape_name:
+                    if val > threshold:
+                        self.blink_count += 1
+                        if self.blink_count < max(time_threshold*100, 1)*2: continue 
+                        '''
+                        Max value of max(time_threshold*100, 1)*2: 200. uuu
+                        Number 200 means 200 frames. When 200 frames, it takes about 1s.
+                        '''
+                    else: self.blink_count = 0
             
                 if device == "mouse":
                     self.mouse_action(val, action, threshold, mode)
             
                 elif device == "keyboard":
                     self.keyboard_action(val, action, threshold, mode)
+                self.blink_count = 0
+                
 
     def set_active(self, flag: bool) -> None:
         self.is_active.set(flag)

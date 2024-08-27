@@ -104,8 +104,12 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
             div["tips_label"].grid()
             div["subtle_label"].grid()
             div["slider"].grid()
+            if 'blink' in gesture_name:
+                div["timer_slider"].grid()
+                div["timer_label"].grid()
             div["volume_bar"].grid()
             div["trigger_dropdown"].grid()
+            div["blink_threshold_slider"].grid_remove()
             self.shared_dropdown.disable_item(gesture_name)
             self.divs[div_name] = div
             self.next_empty_row += 1
@@ -120,7 +124,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         div = self.create_div(row=self.next_empty_row,
                               div_name=div_name,
                               gesture_name="None",
-                              bind_info=["keyboard", "None", 0.5, "hold"])
+                              bind_info=["keyboard", "None", 0.5, "hold", 0.3])
 
         self.divs[div_name] = div
         self.next_empty_row += 1
@@ -157,7 +161,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
 
     def create_div(self, row: int, div_name: str, gesture_name: str,
                    bind_info: list):
-        _, key_action, thres, _ = bind_info
+        _, key_action, thres, _, time_thres = bind_info
 
         # Bin button
         remove_button = customtkinter.CTkButton(master=self,
@@ -275,6 +279,43 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
                           sticky="nw")
         subtle_label.grid_remove()
         
+
+        # Timer-Slider
+        timer_slider = customtkinter.CTkSlider(master=self,
+                                         from_=1,
+                                         to=100,
+                                         width=DIV_WIDTH + 10,
+                                         number_of_steps=100,
+                                         command=partial(
+                                             self.slider_drag_callback,
+                                             div_name))
+        timer_slider.set(time_thres*100) 
+        timer_slider.bind("<Button-1>",
+                    partial(self.slider_mouse_down_callback, div_name))
+        timer_slider.bind("<ButtonRelease-1>",
+                    partial(self.timer_slider_mouse_up_callback, div_name))
+
+        timer_slider.grid(row=row,
+                    column=0,
+                    padx=PAD_X - 5,
+                    pady=(186, 10),
+                    sticky="nw")
+
+        timer_slider.grid_remove()
+
+        # Timer-0s, Timer-2s
+        timer_label = customtkinter.CTkLabel(master=self,
+                                              text="0\t\t\t\t 1s",
+                                              text_color="#868686",
+                                              justify=tk.LEFT)
+        timer_label.cget("font").configure(size=11)
+        timer_label.grid(row=row,
+                          column=0,
+                          padx=PAD_X,
+                          pady=(202, 10),
+                          sticky="nw")
+        timer_label.grid_remove()
+
         # Blink Detection Threshold Slider
         blink_threshold_slider = customtkinter.CTkSlider(
             master=self,
@@ -290,6 +331,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
                                     padx=PAD_X - 5,
                                     pady=(200, 10),  # Adjust padding as needed
                                     sticky="nw")
+        blink_threshold_slider.grid_remove()
         
 
         # Trigger dropdown
@@ -303,7 +345,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         trigger_dropdown.grid(row=row,
                               column=0,
                               padx=PAD_X,
-                              pady=(186, 10),
+                              pady=(225, 10),
                               sticky="nw")
 
         trigger_dropdown.grid_remove()
@@ -313,6 +355,8 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
             "combobox": drop,
             "tips_label": tips_label,
             "slider": slider,
+            "timer_slider": timer_slider,
+            "timer_label": timer_label,
             "volume_bar": volume_bar,
             "subtle_label": subtle_label,
             "selected_gesture": gesture_name,
@@ -336,13 +380,15 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
 
         # Set the keybinding
         thres_value = div["slider"].get() / 100
+        time_thres_value = div["timer_slider"].get() / 100
         trigger = Trigger(div["trigger_dropdown"].get())
         ConfigManager().set_temp_keyboard_binding(
             device="keyboard",
             key_action=div["selected_key_action"],
             gesture=div["selected_gesture"],
             threshold=thres_value,
-            trigger=trigger)
+            trigger=trigger,
+            time_threshold=time_thres_value)
         ConfigManager().apply_keyboard_bindings()
 
     def wait_for_key(self, div_name: str, entry_button, keydown: tk.Event):
@@ -432,10 +478,12 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         div["combobox"].set(target_gesture)
 
         # Show or hide blink threshold slider based on the selected gesture
-        if target_gesture == "Eye Blink":  # Change this to the appropriate gesture name
-            div["blink_threshold_slider"].grid()  # Show the slider
+        if "blink" in target_gesture: # Change this to the appropriate gesture name
+            div["timer_slider"].grid()  # Show the slider
+            div["timer_label"].grid()
         else:
-            div["blink_threshold_slider"].grid_remove()  # Hide the slider
+            div["timer_slider"].grid_remove()  # Hide the slider
+            div["timer_label"].grid_remove()
     
 
         if target_gesture != "None":
@@ -474,14 +522,17 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
     
 
     def slider_mouse_down_callback(self, div_name: str, event):
-        self.slider_dragging = True
+        self.slider_dragging = Truer
 
     def slider_mouse_up_callback(self, div_name: str, event):
 
         self.slider_dragging = False
         div = self.divs[div_name]
         self.set_new_keyboard_binding(div)
-
+    def timer_slider_mouse_up_callback(self, div_name: str, event):
+        self.slider_dragging = False
+        div = self.divs[div_name]
+        self.set_new_keyboard_binding(div)        
     def update_volume_preview(self):
 
         bs = FaceMesh().get_blendshapes()
