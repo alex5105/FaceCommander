@@ -522,7 +522,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
     
 
     def slider_mouse_down_callback(self, div_name: str, event):
-        self.slider_dragging = Truer
+        self.slider_dragging = True
 
     def slider_mouse_up_callback(self, div_name: str, event):
 
@@ -538,7 +538,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         bs = FaceMesh().get_blendshapes()
 
         for div in self.divs.values():
-
+        
             if div["selected_gesture"] == "None":
                 continue
 
