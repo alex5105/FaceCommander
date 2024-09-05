@@ -77,6 +77,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         self.waiting_div = None
         self.waiting_button = None
         self.slider_dragging = False
+        self.used_gestures = []
 
         # Divs
         self.divs = {}
@@ -85,6 +86,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
     def load_initial_keybindings(self):
         """Load default from config and set the UI
         """
+        
         for gesture_name, bind_info in ConfigManager().keyboard_bindings.items(
         ):
             div_name = f"div_{self.next_empty_row}"
@@ -359,8 +361,9 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         }
 
     def open_facial_gesture(self, div_name):
+        self.used_gestures = list(ConfigManager().keyboard_bindings.keys())
         # Open custom dialog and set callback for selection
-        self.shared_dialog.open(div_name)
+        self.shared_dialog.open(div_name, self.used_gestures)
 
     def set_new_keyboard_binding(self, div):
 
