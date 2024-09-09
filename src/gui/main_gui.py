@@ -64,12 +64,12 @@ class MainGui:
                                            logger_name="frame_menu")
         self.frame_menu.grid(row=0, column=0, padx=0, pady=0, sticky="nsew", columnspan=1, rowspan=3)
 
-        # Create Preview frame
-        self.frame_preview = frames.FrameCamPreview(self.tk_root,
-                                                    self.cam_preview_callback,
-                                                    logger_name="frame_preview")
-        self.frame_preview.grid(row=1, column=0, padx=0, pady=0, sticky="sew", columnspan=1)
-        self.frame_preview.enter()
+        # # Create Preview frame
+        # self.frame_preview = frames.FrameCamPreview(self.tk_root,
+        #                                             self.cam_preview_callback,
+        #                                             logger_name="frame_preview")
+        # self.frame_preview.grid(row=1, column=0, padx=0, pady=0, sticky="sew", columnspan=1)
+        # self.frame_preview.enter()
 
         # Create all wizard pages and grid them
         self.pages = [
@@ -100,10 +100,10 @@ class MainGui:
         # Adjust frame widths dynamically based on screen width
         if screen_width <= 1280:  # Adjust for tablet-sized screens
             self.frame_menu.configure(width=200)  # Use configure instead of config
-            self.frame_preview.configure(width=400)
+            # self.frame_preview.configure(width=400)
         else:
             self.frame_menu.configure(width=260)
-            self.frame_preview.configure(width=600)
+            # self.frame_preview.configure(width=600)
 
         # Update layout again
         self.tk_root.update_idletasks()
