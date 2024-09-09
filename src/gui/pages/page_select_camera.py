@@ -54,7 +54,7 @@ class PageSelectCamera(SafeDisposableFrame):
                                      width=CANVAS_WIDTH,
                                      height=CANVAS_HEIGHT)
         self.canvas.grid(row=1,
-                         column=1,
+                         column=0,
                          padx=(10, 50),
                          pady=10,
                          sticky="e",
