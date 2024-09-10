@@ -14,6 +14,7 @@ BTN_SIZE = 225, 48
 PROF_DROP_SIZE = 220, 40
 EXPANDED_WIDTH = 260
 COLLAPSED_WIDTH = 60
+TOGGLE_IMG_SIZE = 52, 48
 
 class FrameMenu(SafeDisposableFrame):
 
@@ -57,9 +58,9 @@ class FrameMenu(SafeDisposableFrame):
         }
         # Toggle button
         # self.toggle_button = customtkinter.CTkButton(self, text="◀", width=20, command=self.toggle_sidebar)
-        self.toggle_button = customtkinter.CTkButton(master=self, anchor="nw", border_spacing=20, border_width=0,
-                                hover=False, corner_radius=0, text="Hide   ◀",
-                                command=self.toggle_sidebar)
+        hide_menu_img= customtkinter.CTkImage(Image.open("assets/images/hide_menu.png"), size=BTN_SIZE)
+        self.toggle_button = customtkinter.CTkButton(master=self, anchor="nw", border_spacing=0, border_width=0,
+                                hover=False, corner_radius=0, image=hide_menu_img, text="",command=self.toggle_sidebar)
         # self.toggle_button.grid(row=0, column=1, padx=20, pady=10, sticky="ew")
         self.toggle_button.grid(row=0,
                     column=0,
@@ -107,14 +108,16 @@ class FrameMenu(SafeDisposableFrame):
     def toggle_sidebar(self):
         if self.expanding:
             self.configure(width=COLLAPSED_WIDTH)
-            self.toggle_button.configure(text="▶")
+            show_menu_img= customtkinter.CTkImage(Image.open("assets/images/show_menu.png"), size=TOGGLE_IMG_SIZE)
+            self.toggle_button.configure(image=show_menu_img)
             self.profile_btn.grid_forget()
             self.frame_preview.grid_forget()
             for k, btn in self.buttons.items():
                 btn.grid_forget()
         else:
             self.configure(width=EXPANDED_WIDTH)
-            self.toggle_button.configure(text="Hide   ◀")
+            hide_menu_img= customtkinter.CTkImage(Image.open("assets/images/hide_menu.png"), size=BTN_SIZE)
+            self.toggle_button.configure(image=hide_menu_img)
             self.profile_btn.grid(row=1, column=0, padx=10, pady=10, sticky="nw")
             for idx, (k, btn) in enumerate(self.buttons.items()):
                 btn.grid(row=idx + 2,

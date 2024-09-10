@@ -35,6 +35,8 @@ class MainGui:
             self.tk_root.geometry(f"{int(screen_width * 0.9)}x{int(screen_height * 0.9)}")
         else:
             self.tk_root.geometry("1024x800")
+        min_width, min_height = 400, 500
+        self.tk_root.minsize(min_width, min_height)  # Set minimum size for the root window
 
         self.tk_root.title(" ".join((App().name, App().version)))
         self.tk_root.iconbitmap("assets/images/icon.ico")
@@ -91,6 +93,10 @@ class MainGui:
         # Make layout adjustments for responsiveness
         self.adjust_layout_for_responsiveness()
 
+        # self.tk_root.bind("<Configure>", self.on_resize)
+    def on_resize(self, event):
+        dialog_width = self.tk_root.winfo_width()
+        print(dialog_width)
     def adjust_layout_for_responsiveness(self):
         """Adjust layout dynamically based on screen size."""
         self.tk_root.update_idletasks()
