@@ -124,7 +124,9 @@ class PageSelectCamera(SafeDisposableFrame):
 
         if self.is_active:
 
-            frame_rgb = CameraManager().get_raw_frame()
+            # frame_rgb = CameraManager().get_raw_frame()
+            frame_rgb = CameraManager().get_debug_frame()
+            
             # Assign ref to avoid garbage collected
             self.new_photo = ImageTk.PhotoImage(
                 image=Image.fromarray(frame_rgb).resize((CANVAS_WIDTH,

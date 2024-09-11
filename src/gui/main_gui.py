@@ -1,6 +1,7 @@
 import logging
-
-#
+from PIL import Image
+from src.config_manager import ConfigManager
+from functools import partial
 # Tk/Tcl module, only used for observable variables here.
 # https://www.pythontutorial.net/tkinter/tkinter-stringvar/
 from tkinter import IntVar, StringVar
@@ -18,7 +19,7 @@ customtkinter.set_appearance_mode("light")
 customtkinter.set_default_color_theme("assets/themes/google_theme.json")
 
 logger = logging.getLogger("MainGUi")
-
+PROF_DROP_SIZE = 220, 40
 class MainGui:
 
     def __init__(self, tk_root):
@@ -35,8 +36,6 @@ class MainGui:
             self.tk_root.geometry(f"{int(screen_width * 0.9)}x{int(screen_height * 0.9)}")
         else:
             self.tk_root.geometry("1024x800")
-        min_width, min_height = 400, 500
-        self.tk_root.minsize(min_width, min_height)  # Set minimum size for the root window
 
         self.tk_root.title(" ".join((App().name, App().version)))
         self.tk_root.iconbitmap("assets/images/icon.ico")
@@ -66,14 +65,63 @@ class MainGui:
                                            logger_name="frame_menu")
         self.frame_menu.grid(row=0, column=0, padx=0, pady=0, sticky="nsew", columnspan=1, rowspan=3)
 
-        # # Create Preview frame
-        # self.frame_preview = frames.FrameCamPreview(self.tk_root,
-        #                                             self.cam_preview_callback,
-        #                                             logger_name="frame_preview")
-        # self.frame_preview.grid(row=1, column=0, padx=0, pady=0, sticky="sew", columnspan=1)
-        # self.frame_preview.enter()
+        # Create Preview frame
+        self.frame_preview = frames.FrameCamPreview(self.tk_root,
+                                                    self.cam_preview_callback,
+                                                    logger_name="frame_preview")
+        self.frame_preview.grid(row=1, column=0, padx=0, pady=0, sticky="sew", columnspan=1)
+        self.frame_preview.enter()
 
         # Create all wizard pages and grid them
+
+        # Profile button
+        prof_drop = customtkinter.CTkImage(
+            Image.open("assets/images/prof_drop_head.png"), size=PROF_DROP_SIZE)
+        self.profile_btn = customtkinter.CTkLabel(
+            master=self.tk_root,
+            textvariable=ConfigManager().current_profile_name,
+            image=prof_drop,
+            height=42,
+            compound="center",
+            anchor="w",
+            cursor="hand2",
+        )
+        self.profile_btn.bind("<Button-1>",
+                         partial(self.root_function_callback, "show_profile_switcher"))
+
+        self.profile_btn.grid(row=0,
+                         column=0,
+                         padx=35,
+                         pady=10,
+                         ipadx=0,
+                         ipady=0,
+                         sticky="nw",
+                         columnspan=1,
+                         rowspan=1)   
+
+        # Toggle switch
+        self.toggle_switch = customtkinter.CTkSwitch(
+            master=self.tk_root,
+            text="",
+            width=200,
+            border_color="transparent",
+            switch_height=18,
+            switch_width=32,
+            variable=Keybinder().is_active,
+            command=lambda: self.root_function_callback(
+                "toggle_switch", {"switch_status": self.toggle_switch.get()}),
+            onvalue=1,
+            offvalue=0,
+        )
+        if ConfigManager().config["auto_play"]:
+            self.toggle_switch.select()
+
+        self.toggle_switch.grid(row=1,
+                                column=0,
+                                padx=(100, 0),
+                                pady=5,
+                                sticky="nw")     
+        self.toggle_switch.grid_remove()        
         self.pages = [
             PageSelectCamera(master=self.tk_root,),
             PageKeyboard(master=self.tk_root,),
@@ -90,13 +138,66 @@ class MainGui:
         self.frame_profile_switcher = frames.FrameProfileSwitcher(self.tk_root, main_gui_callback=self.root_function_callback)
         self.frame_profile_editor = frames.FrameProfileEditor(self.tk_root, main_gui_callback=self.root_function_callback)
 
-        # Make layout adjustments for responsiveness
-        self.adjust_layout_for_responsiveness()
+        # # Make layout adjustments for responsiveness
+        # self.adjust_layout_for_responsiveness()
+        self.last_device_props = ''
+        self.current_device_props = ''
+        self.tk_root.bind("<Configure>", self.on_resize)
 
-        # self.tk_root.bind("<Configure>", self.on_resize)
+
     def on_resize(self, event):
-        dialog_width = self.tk_root.winfo_width()
-        print(dialog_width)
+        """Print the current window size when resized."""
+        window_width = self.tk_root.winfo_width()
+        window_height = self.tk_root.winfo_height()
+        # print(f"Window resized: {window_width}x{window_height}")
+        
+        if window_width < 800 :
+            self.current_device_props = "small"
+        else:
+            self.current_device_props = "big"
+        if self.current_device_props == "small" and self.last_device_props != "small":
+            self.frame_menu.on_resize("small")
+            self.frame_menu.configure(width=60)
+            self.frame_preview.grid_remove()
+            self.toggle_switch.grid(row=1,
+                                    column=1,
+                                    padx=(100, 0),
+                                    pady=0,
+                                    sticky="nw")    
+            # self.profile_btn.configure(master=self.tk_root)
+            self.profile_btn.grid(row=0,
+                            column=1,
+                            padx=35,
+                            pady=10,
+                            ipadx=0,
+                            ipady=0,
+                            sticky="nw",
+                            columnspan=1,
+                            rowspan=1)  
+            for page in self.pages:
+                page.grid(row=1, column=1, padx=5, pady=20, sticky="nsew", rowspan=2, columnspan=1)  
+            self.last_device_props ="small"
+
+
+        elif self.current_device_props != "small" and self.last_device_props == "small":
+            self.frame_menu.on_resize("big")
+            self.frame_menu.configure(width=260)
+            self.toggle_switch.grid_remove() 
+            # self.profile_btn.configure(master=self.frame_menu)
+            self.profile_btn.grid(row=0,
+                            column=0,
+                            padx=35,
+                            pady=10,
+                            ipadx=0,
+                            ipady=0,
+                            sticky="nw",
+                            columnspan=1,
+                            rowspan=1)  
+            for page in self.pages:
+                page.grid(row=0, column=1, padx=5, pady=5, sticky="nsew", rowspan=2, columnspan=1)    
+            self.last_device_props ="big" 
+                 
+
     def adjust_layout_for_responsiveness(self):
         """Adjust layout dynamically based on screen size."""
         self.tk_root.update_idletasks()
@@ -105,7 +206,7 @@ class MainGui:
 
         # Adjust frame widths dynamically based on screen width
         if screen_width <= 1280:  # Adjust for tablet-sized screens
-            self.frame_menu.configure(width=200)  # Use configure instead of config
+            self.frame_menu.configure(width=100)  # Use configure instead of config
             # self.frame_preview.configure(width=400)
         else:
             self.frame_menu.configure(width=260)
