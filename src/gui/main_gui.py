@@ -30,6 +30,9 @@ class MainGui:
         # Get screen width and height for dynamic scaling
         screen_width = self.tk_root.winfo_screenwidth()
         screen_height = self.tk_root.winfo_screenheight()
+        self.bounday_width = 800
+        self.sidebar_big_size = 260
+        self.sidebar_small_size = 60
 
         # Set window size based on screen dimensions for tablets
         if screen_width <= 1280:
@@ -61,7 +64,7 @@ class MainGui:
         self.frame_menu = frames.FrameMenu(self.tk_root,
                                            self.root_function_callback,
                                            height=360,
-                                           width=260,
+                                           width=self.sidebar_big_size,
                                            logger_name="frame_menu")
         self.frame_menu.grid(row=0, column=0, padx=0, pady=0, sticky="nsew", columnspan=1, rowspan=3)
 
@@ -71,38 +74,18 @@ class MainGui:
                                                     logger_name="frame_preview")
         self.frame_preview.grid(row=1, column=0, padx=0, pady=0, sticky="sew", columnspan=1)
         self.frame_preview.enter()
-
-        # Create all wizard pages and grid them
-
-        # Profile button
-        prof_drop = customtkinter.CTkImage(
-            Image.open("assets/images/prof_drop_head.png"), size=PROF_DROP_SIZE)
-        self.profile_btn = customtkinter.CTkLabel(
-            master=self.tk_root,
-            textvariable=ConfigManager().current_profile_name,
-            image=prof_drop,
-            height=42,
-            compound="center",
-            anchor="w",
-            cursor="hand2",
-        )
-        self.profile_btn.bind("<Button-1>",
-                         partial(self.root_function_callback, "show_profile_switcher"))
-
-        self.profile_btn.grid(row=0,
-                         column=0,
-                         padx=35,
-                         pady=10,
-                         ipadx=0,
-                         ipady=0,
-                         sticky="nw",
-                         columnspan=1,
-                         rowspan=1)   
+        
+        if self.tk_root.winfo_width() < self.bounday_width:
+            self.switch_profile_location("small")
+            self.current_device_props = "small"
+        else:
+            self.switch_profile_location("big")
+            self.current_device_props = "big"
 
         # Toggle switch
         self.toggle_switch = customtkinter.CTkSwitch(
             master=self.tk_root,
-            text="",
+            text="Face Control",
             width=200,
             border_color="transparent",
             switch_height=18,
@@ -129,6 +112,7 @@ class MainGui:
         ]
 
         self.current_page_name = None
+        self.pages[0].switch_raw_debug(self.current_device_props)
         for page in self.pages:
             page.grid(row=0, column=1, padx=5, pady=5, sticky="nsew", rowspan=2, columnspan=1)
 
@@ -144,6 +128,38 @@ class MainGui:
         self.current_device_props = ''
         self.tk_root.bind("<Configure>", self.on_resize)
 
+    def switch_profile_location(self, device_props):
+        if device_props == "small":
+            master = self.tk_root
+            column= 1
+        else:
+            master = self.frame_menu
+            column= 0
+        try: self.profile_btn.grid_remove()
+        except: pass
+        prof_drop = customtkinter.CTkImage(
+            Image.open("assets/images/prof_drop_head.png"), size=PROF_DROP_SIZE)
+        
+        self.profile_btn = customtkinter.CTkLabel(
+            master=master,
+            textvariable=ConfigManager().current_profile_name,
+            image=prof_drop,
+            height=42,
+            compound="center",
+            anchor="w",
+            cursor="hand2",
+            )         
+        self.profile_btn.bind("<Button-1>",
+                        partial(self.root_function_callback, "show_profile_switcher"))                   
+        self.profile_btn.grid(row=0,
+                            column=column,
+                            padx=35,
+                            pady=10,
+                            ipadx=0,
+                            ipady=0,
+                            sticky="n",  # Center horizontally and align to the top
+                            columnspan=2,  # Adjust this to span across multiple columns if needed
+                            rowspan=1)
 
     def on_resize(self, event):
         """Print the current window size when resized."""
@@ -151,52 +167,39 @@ class MainGui:
         window_height = self.tk_root.winfo_height()
         # print(f"Window resized: {window_width}x{window_height}")
         
-        if window_width < 800 :
+        if window_width < self.bounday_width :
             self.current_device_props = "small"
         else:
             self.current_device_props = "big"
         if self.current_device_props == "small" and self.last_device_props != "small":
             self.frame_menu.on_resize("small")
-            self.frame_menu.configure(width=60)
+            self.frame_menu.configure(width=self.sidebar_small_size)
             self.frame_preview.grid_remove()
             self.toggle_switch.grid(row=1,
                                     column=1,
                                     padx=(100, 0),
                                     pady=0,
-                                    sticky="nw")    
-            # self.profile_btn.configure(master=self.tk_root)
-            self.profile_btn.grid(row=0,
-                            column=1,
-                            padx=35,
-                            pady=10,
-                            ipadx=0,
-                            ipady=0,
-                            sticky="nw",
-                            columnspan=1,
-                            rowspan=1)  
+                                    sticky="n")    
+            self.switch_profile_location("small")
+            self.current_page_name = None
+            self.pages[0].switch_raw_debug(self.current_device_props)
             for page in self.pages:
-                page.grid(row=1, column=1, padx=5, pady=20, sticky="nsew", rowspan=2, columnspan=1)  
+                page.grid(row=1, column=1, padx=5, pady=20, sticky="nsew", rowspan=2, columnspan=1)
+            self.change_page(PageSelectCamera.__name__)
             self.last_device_props ="small"
-
 
         elif self.current_device_props != "small" and self.last_device_props == "small":
             self.frame_menu.on_resize("big")
-            self.frame_menu.configure(width=260)
+            self.frame_menu.configure(width=self.sidebar_big_size)
+            self.frame_preview.grid(row=1, column=0, padx=0, pady=0, sticky="sew", columnspan=1)
             self.toggle_switch.grid_remove() 
-            # self.profile_btn.configure(master=self.frame_menu)
-            self.profile_btn.grid(row=0,
-                            column=0,
-                            padx=35,
-                            pady=10,
-                            ipadx=0,
-                            ipady=0,
-                            sticky="nw",
-                            columnspan=1,
-                            rowspan=1)  
+            self.switch_profile_location("big")
+            self.current_page_name = None
+            self.pages[0].switch_raw_debug(self.current_device_props)
             for page in self.pages:
                 page.grid(row=0, column=1, padx=5, pady=5, sticky="nsew", rowspan=2, columnspan=1)    
+            self.change_page(PageSelectCamera.__name__)
             self.last_device_props ="big" 
-                 
 
     def adjust_layout_for_responsiveness(self):
         """Adjust layout dynamically based on screen size."""
