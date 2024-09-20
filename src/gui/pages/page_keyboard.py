@@ -112,6 +112,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
                 div["timer_label"].grid()
             div["volume_bar"].grid()
             div["trigger_dropdown"].grid()
+            div["trigger_label"].grid()
             div["blink_threshold_slider"].grid_remove()
             self.divs[div_name] = div
             # self.next_empty_row += 1
@@ -163,7 +164,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         div = self.create_div(row=self.next_empty_row,
                               column=self.next_empty_column,
                               div_name=div_name,
-                              gesture_name="None",
+                              gesture_name="Click to define your facial gesture",
                               bind_info=["keyboard", "None", 0.5, "hold", 0.3])
 
         self.divs[div_name] = div
@@ -338,21 +339,21 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         timer_slider.grid(row=row,
                     column=column,
                     padx=PAD_X - 5,
-                    pady=(186, 10),
+                    pady=(196, 10),
                     sticky="nw")
 
         timer_slider.grid_remove()
 
         # Timer-0s, Timer-2s
         timer_label = customtkinter.CTkLabel(master=self,
-                                              text="0\t\t\t\t 1s",
+                                              text="0\t            Blink Length\t\t1s",
                                               text_color="#868686",
                                               justify=tk.LEFT)
         timer_label.cget("font").configure(size=11)
         timer_label.grid(row=row,
                           column=column,
                           padx=PAD_X,
-                          pady=(202, 10),
+                          pady=(212, 10),
                           sticky="nw")
         timer_label.grid_remove()
 
@@ -369,7 +370,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         blink_threshold_slider.grid(row=row,
                                     column=column,
                                     padx=PAD_X - 5,
-                                    pady=(200, 10),  # Adjust padding as needed
+                                    pady=(210, 10),  # Adjust padding as needed
                                     sticky="nw")
         blink_threshold_slider.grid_remove()
         
@@ -382,13 +383,28 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
                                                        dynamic_resizing=False,
                                                        state="normal",
                                                        )
+        
+        trigger_dropdown.set("single")
         trigger_dropdown.grid(row=row,
                               column=column,
                               padx=PAD_X,
-                              pady=(225, 10),
+                              pady=(235, 10),
                               sticky="nw")
 
         trigger_dropdown.grid_remove()
+
+        trigger_label = customtkinter.CTkLabel(master=self,
+                                              text="Key press type",
+                                              text_color="#868686",
+                                              justify=tk.LEFT)
+        
+        trigger_label.cget("font").configure(size=11)
+        trigger_label.grid(row=row,
+                          column=column,
+                          padx=PAD_X,
+                          pady=(261, 10),
+                          sticky="nw")
+        trigger_label.grid_remove()
 
         return {
             "entry_field": entry_field,
@@ -403,6 +419,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
             "selected_key_action": key_action,
             "remove_button": remove_button,
             "trigger_dropdown": trigger_dropdown,
+            "trigger_label": trigger_label,
             "blink_threshold_slider": blink_threshold_slider
         }
 
@@ -663,7 +680,7 @@ class PageKeyboard(SafeDisposableFrame):
         # Inner frame
         self.inner_frame = FrameSelectKeyboard(
             self, logger_name="FrameSelectKeyboard")
-        self.inner_frame.grid(row=3, column=0, padx=5, pady=5, sticky="nswe")
+        self.inner_frame.grid(row=3, column=0, padx=5, pady=25, sticky="nswe")
 
         # Add binding button
         self.add_binding_button = customtkinter.CTkButton(
@@ -677,6 +694,14 @@ class PageKeyboard(SafeDisposableFrame):
                                      padx=5,
                                      pady=5,
                                      sticky="nw")
+        
+        self.top_label = customtkinter.CTkLabel(master=self,
+                                                text="Press a key for it to detect the key")
+        self.top_label.grid(row=3,
+                            column=0,
+                            padx=55,
+                            pady=5,
+                            sticky="nw",)
     def enter(self):
         super().enter()
         self.inner_frame.enter()

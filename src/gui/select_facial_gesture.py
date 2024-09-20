@@ -76,7 +76,7 @@ class Select_Facial_Gesture:
             btn.grid(row=len(self.divs.items()) // self.max_columns, column=len(self.divs.items()) % self.max_columns, padx=5, pady=5, sticky="ew")
 
         # Create a frame for Confirm and Cancel buttons
-        button_frame = customtkinter.CTkFrame(self.dialog_window)
+        button_frame = customtkinter.CTkFrame(self.dialog_window, fg_color='gray95', border_color='gray95')
         button_frame.pack(pady=20)
 
         # Confirm button (initially disabled)
