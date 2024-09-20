@@ -44,7 +44,7 @@ class Select_Facial_Gesture:
         self.dialog_window.transient(self.master)
 
         # Create a label
-        label = customtkinter.CTkLabel(self.dialog_window, text='Choose a Gesture for "Select"', font=("Arial", 14))
+        label = customtkinter.CTkLabel(self.dialog_window, text='Which Gesture would you like to use for this key', font=("Arial", 14))
         label.pack(pady=20)
 
         # Create a scrollable frame for items

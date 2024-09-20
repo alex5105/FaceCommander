@@ -324,9 +324,9 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         # Timer-Slider
         timer_slider = customtkinter.CTkSlider(master=self,
                                          from_=1,
-                                         to=100,
+                                         to=300,
                                          width=DIV_WIDTH + 10,
-                                         number_of_steps=100,
+                                         number_of_steps=300,
                                          command=partial(
                                              self.slider_drag_callback,
                                              div_name))
@@ -346,7 +346,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
 
         # Timer-0s, Timer-2s
         timer_label = customtkinter.CTkLabel(master=self,
-                                              text="0\t            Blink Length\t\t1s",
+                                              text="0\t            Blink Length\t\t3s",
                                               text_color="#868686",
                                               justify=tk.LEFT)
         timer_label.cget("font").configure(size=11)
