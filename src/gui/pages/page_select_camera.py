@@ -11,8 +11,8 @@ from src.gui.frames.safe_disposable_frame import SafeDisposableFrame
 
 logger = logging.getLogger("PageSelectCamera")
 
-CANVAS_WIDTH = 320
-CANVAS_HEIGHT = 240
+CANVAS_WIDTH = 440
+CANVAS_HEIGHT = 330
 
 MAX_ROWS = 10
 

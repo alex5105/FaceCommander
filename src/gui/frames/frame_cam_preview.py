@@ -8,8 +8,8 @@ from src.config_manager import ConfigManager
 from src.controllers import Keybinder
 from src.gui.frames.safe_disposable_frame import SafeDisposableFrame
 
-CANVAS_WIDTH = 216
-CANVAS_HEIGHT = 162
+CANVAS_WIDTH = 320
+CANVAS_HEIGHT = 240
 LIGHT_BLUE = "#F9FBFE"
 TOGGLE_ICON_SIZE = (32, 20)
 

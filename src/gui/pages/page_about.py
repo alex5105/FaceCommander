@@ -65,9 +65,9 @@ class PageAbout(SafeDisposableFrame):
         self._updateHost = updateHost
 
         # Create font objects for the fonts used on this page.
-        font24 = Font(family="Google Sans", size=24)
-        font18 = Font(family="Google Sans", size=18)
-        font12 = Font(family="Google Sans", size=12)
+        font24 = Font(family="Google Sans", size=16)
+        font18 = Font(family="Google Sans", size=11, weight='bold')
+        font12 = Font(family="Google Sans", size=9)
         #
         # This is the nearest you can get to making a character invisible.
         font1Pixel = Font(size=-1)
