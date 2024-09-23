@@ -241,13 +241,13 @@ class FrameCamPreview(SafeDisposableFrame):
         if self.autostart_var.get():
             success = self.enable_autostart()
             if success:
-                messagebox.showinfo("Auto-Start", "Application will start automatically!")
+                messagebox.showinfo("Auto-Start", "Application will start automatically on restart")
             else:
                 messagebox.showerror("Error", "Failed to enable auto-start.")
         else:
             success = self.disable_autostart()
             if success:
-                messagebox.showinfo("Auto-Start", "Application will not start automatically!")
+                messagebox.showinfo("Auto-Start", "Application will not start automatically")
             else:
                 messagebox.showerror("Error", "Failed to disable auto-start.")
 
