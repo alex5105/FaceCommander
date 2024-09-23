@@ -12,7 +12,7 @@ python = ">=3.10,<3.14"
 flatbuffers = "^24.3.25"
 matplotlib = "^3.9.2"
 customtkinter = "^5.2.2"
-mediapipe = "^0.10.14"
+mediapipe = "0.10.14"
 pydirectinput = { version = "1.0.4", markers = "sys_platform == 'win32'" }
 pygrabber = { version = "0.2", markers = "sys_platform == 'win32'" }
 pillow = "^10.4.0"
@@ -22,6 +22,7 @@ requests = "^2.32.3"
 pywin32 = { version = "306", markers = "sys_platform == 'win32'" }
 psutil = "^6.0.0"
 pyinstaller = "^6.10.0"
+playsound = "1.2.2"
 
 [tool.poetry.dev-dependencies]
 ruff = "^0.0.287"
