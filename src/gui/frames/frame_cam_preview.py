@@ -7,7 +7,6 @@ from src.camera_manager import CameraManager
 from src.config_manager import ConfigManager
 from src.controllers import Keybinder
 from src.gui.frames.safe_disposable_frame import SafeDisposableFrame
-from playsound import playsound
 from tkinter import messagebox
 from pathlib import Path
 import plistlib
@@ -71,10 +70,7 @@ class FrameCamPreview(SafeDisposableFrame):
             switch_height=18,
             switch_width=32,
             variable=Keybinder().is_active,
-            command=lambda: [
-                master_callback("toggle_switch", {"switch_status": self.toggle_switch.get()}),
-                self.play_sound()
-            ],
+            command=lambda: master_callback("toggle_switch", {"switch_status": self.toggle_switch.get()}),
             onvalue=1,
             offvalue=0,
         )
@@ -237,7 +233,6 @@ class FrameCamPreview(SafeDisposableFrame):
             return False
 
     def toggle_autostart(self):
-        self.play_sound()
         if self.autostart_var.get():
             success = self.enable_autostart()
             if success:
@@ -278,24 +273,6 @@ class FrameCamPreview(SafeDisposableFrame):
         except Exception as e:
             print(f"Disable autostart failed: {e}")
             return False
-                    
-    def play_sound(self):
-        sound_path = 'assets/sounds/notif.mp3'
-        threading.Thread(target=playsound, args=(sound_path,), daemon=True).start()
-
-    def switch_toggled(self):
-        # Play sound when the switch is toggled
-        sound_path = 'assets/sounds/notif.mp3'  # Path to your sound file
-
-        # Check if the sound file exists
-        if os.path.exists(sound_path):
-            playsound(sound_path)  # Play the sound if the file exists
-        else:
-            print(f"Sound file not found: {sound_path}")
-        # Existing functionality
-        self.root_function_callback(
-            "toggle_switch", {"switch_status": self.toggle_switch.get()}
-        )
 
     def camera_loop(self):
         if self.is_destroyed:
