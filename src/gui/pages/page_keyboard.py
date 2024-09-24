@@ -14,6 +14,9 @@ from src.gui.select_facial_gesture import Select_Facial_Gesture
 from src.gui.frames.safe_disposable_frame import SafeDisposableFrame
 from src.gui.frames.safe_disposable_scrollable_frame import SafeDisposableScrollableFrame
 from src.utils.Trigger import Trigger
+from playsound import playsound
+import threading
+import time
 
 logger = logging.getLogger("PageKeyboard")
 
@@ -46,6 +49,8 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
+        self.last_sound_time = 0
+        self.sound_cooldown = 1
         # Float UIs
         self.shared_info_balloon = Balloon(
             self, image_path="assets/images/balloon.png")
@@ -164,7 +169,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         div = self.create_div(row=self.next_empty_row,
                               column=self.next_empty_column,
                               div_name=div_name,
-                              gesture_name="Click to define your facial gesture",
+                              gesture_name="None",
                               bind_info=["keyboard", "None", 0.5, "hold", 0.3])
 
         self.divs[div_name] = div
@@ -246,7 +251,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         # Use select_facial_gesture for dropdown functionality
         button = customtkinter.CTkButton(
             master=self,
-            text=gesture_name,
+            text="Click to define your facial gesture" if gesture_name == 'None' else gesture_name,
             command=partial(self.open_facial_gesture, div_name),
             width=DIV_WIDTH,
             fg_color='lightblue'
@@ -599,7 +604,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
     def update_volume_preview(self):
 
         bs = FaceMesh().get_blendshapes()
-
+        sound_triggered = False
         for div in self.divs.values():
         
             if div["selected_gesture"] == "None":
@@ -612,8 +617,14 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
             slider_value = div["slider"].get() / 100
             if bs_value > slider_value:
                 div["volume_bar"].configure(progress_color=GREEN)  # green
+                sound_triggered = True
             else:
                 div["volume_bar"].configure(progress_color=YELLOW)  # yellow
+
+        current_time = time.time()
+        if sound_triggered and current_time - self.last_sound_time > self.sound_cooldown:
+            self.play_sound()
+            self.last_sound_time = current_time
 
     def frame_loop(self):
         if self.is_destroyed:
@@ -645,6 +656,9 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         super().leave()
         self.wait_for_key(self.waiting_div, self.waiting_button, "cancel")
 
+    def play_sound(self):
+        sound_path = 'assets/sounds/notif.mp3'
+        threading.Thread(target=playsound, args=(sound_path,), daemon=True).start()
 
 class PageKeyboard(SafeDisposableFrame):
 
