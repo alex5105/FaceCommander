@@ -5,7 +5,7 @@ from PIL import Image
 
 from src.config_manager import ConfigManager
 from src.gui.pages import (
-    PageSelectCamera, PageKeyboard, PageAbout)
+    PageSelectCamera, PageKeyboard, PageAbout, PageSetting, PageCursor, PageSelectGestures)
 from src.gui.frames.safe_disposable_frame import SafeDisposableFrame
 
 # LIGHT_BLUE = "yellow"
@@ -20,7 +20,7 @@ class FrameMenu(SafeDisposableFrame):
     def __init__(self, master, master_callback: callable, **kwargs):
         super().__init__(master, **kwargs)
 
-        self.grid_rowconfigure(6, weight=1)
+        self.grid_rowconfigure(7, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.grid_propagate(False)
         self.configure(fg_color=LIGHT_BLUE)
@@ -36,12 +36,36 @@ class FrameMenu(SafeDisposableFrame):
                     Image.open("assets/images/menu_btn_camera_selected.png"),
                     size=BTN_SIZE)
             ],
+            PageCursor.__name__: [
+                customtkinter.CTkImage(
+                    Image.open("assets/images/menu_btn_cursor.png"),
+                    size=BTN_SIZE),
+                customtkinter.CTkImage(
+                    Image.open("assets/images/menu_btn_cursor_selected.png"),
+                    size=BTN_SIZE)
+            ],
+            PageSelectGestures.__name__: [
+                customtkinter.CTkImage(
+                    Image.open("assets/images/menu_btn_gestures.png"),
+                    size=BTN_SIZE),
+                customtkinter.CTkImage(
+                    Image.open("assets/images/menu_btn_gestures_selected.png"),
+                    size=BTN_SIZE)
+            ],
             PageKeyboard.__name__: [
                 customtkinter.CTkImage(
                     Image.open("assets/images/menu_btn_keyboard.png"),
                     size=BTN_SIZE),
                 customtkinter.CTkImage(
                     Image.open("assets/images/menu_btn_keyboard_selected.png"),
+                    size=BTN_SIZE)
+            ],
+            PageSetting.__name__: [
+                customtkinter.CTkImage(
+                    Image.open("assets/images/menu_btn_settings.png"),
+                    size=BTN_SIZE),
+                customtkinter.CTkImage(
+                    Image.open("assets/images/menu_btn_settings_selected.png"),
                     size=BTN_SIZE)
             ],
             PageAbout.__name__: [
@@ -51,7 +75,7 @@ class FrameMenu(SafeDisposableFrame):
                 customtkinter.CTkImage(
                     Image.open("assets/images/menu_btn_about_selected.png"),
                     size=BTN_SIZE)
-            ]
+            ],
         }
 
 
@@ -72,12 +96,36 @@ class FrameMenu(SafeDisposableFrame):
                         Image.open("assets/images/menu_btn_camera_selected_icon.png"),
                         size=SMALL_BTN_SIZE)
                 ],
+                PageCursor.__name__: [
+                    customtkinter.CTkImage(
+                        Image.open("assets/images/menu_btn_cursor_icon.png"),
+                        size=SMALL_BTN_SIZE),
+                    customtkinter.CTkImage(
+                        Image.open("assets/images/menu_btn_cursor_selected_icon.png"),
+                        size=SMALL_BTN_SIZE)
+                ],
+                PageSelectGestures.__name__: [
+                    customtkinter.CTkImage(
+                        Image.open("assets/images/menu_btn_gestures_icon.png"),
+                        size=SMALL_BTN_SIZE),
+                    customtkinter.CTkImage(
+                        Image.open("assets/images/menu_btn_gestures_selected_icon.png"),
+                        size=SMALL_BTN_SIZE)
+                ],
                 PageKeyboard.__name__: [
                     customtkinter.CTkImage(
                         Image.open("assets/images/menu_btn_keyboard_icon.png"),
                         size=SMALL_BTN_SIZE),
                     customtkinter.CTkImage(
                         Image.open("assets/images/menu_btn_keyboard_selected_icon.png"),
+                        size=SMALL_BTN_SIZE)
+                ],
+                PageSetting.__name__: [
+                    customtkinter.CTkImage(
+                        Image.open("assets/images/menu_btn_settings_icon.png"),
+                        size=SMALL_BTN_SIZE),
+                    customtkinter.CTkImage(
+                        Image.open("assets/images/menu_btn_settings_selected_icon.png"),
                         size=SMALL_BTN_SIZE)
                 ],
                 PageAbout.__name__: [
@@ -87,7 +135,7 @@ class FrameMenu(SafeDisposableFrame):
                     customtkinter.CTkImage(
                         Image.open("assets/images/menu_btn_about_selected_icon.png"),
                         size=SMALL_BTN_SIZE)
-                ]
+                ],
             }
             # self.buttons = self.create_tab_btn(self.menu_btn_images, offset=1)
             self.set_tab_active(PageSelectCamera.__name__)
@@ -101,12 +149,36 @@ class FrameMenu(SafeDisposableFrame):
                         Image.open("assets/images/menu_btn_camera_selected.png"),
                         size=BTN_SIZE)
                 ],
+                PageCursor.__name__: [
+                    customtkinter.CTkImage(
+                        Image.open("assets/images/menu_btn_cursor.png"),
+                        size=BTN_SIZE),
+                    customtkinter.CTkImage(
+                        Image.open("assets/images/menu_btn_cursor_selected.png"),
+                        size=BTN_SIZE)
+                ],
+                PageSelectGestures.__name__: [
+                    customtkinter.CTkImage(
+                        Image.open("assets/images/menu_btn_gestures.png"),
+                        size=BTN_SIZE),
+                    customtkinter.CTkImage(
+                        Image.open("assets/images/menu_btn_gestures_selected.png"),
+                        size=BTN_SIZE)
+                ],
                 PageKeyboard.__name__: [
                     customtkinter.CTkImage(
                         Image.open("assets/images/menu_btn_keyboard.png"),
                         size=BTN_SIZE),
                     customtkinter.CTkImage(
                         Image.open("assets/images/menu_btn_keyboard_selected.png"),
+                        size=BTN_SIZE)
+                ],
+                PageSetting.__name__: [
+                    customtkinter.CTkImage(
+                        Image.open("assets/images/menu_btn_settings.png"),
+                        size=BTN_SIZE),
+                    customtkinter.CTkImage(
+                        Image.open("assets/images/menu_btn_settings_selected.png"),
                         size=BTN_SIZE)
                 ],
                 PageAbout.__name__: [
@@ -116,7 +188,7 @@ class FrameMenu(SafeDisposableFrame):
                     customtkinter.CTkImage(
                         Image.open("assets/images/menu_btn_about_selected.png"),
                         size=BTN_SIZE)
-                ]
+                ],
             }
 
             

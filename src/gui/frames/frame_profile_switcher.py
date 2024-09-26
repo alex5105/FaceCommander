@@ -387,6 +387,8 @@ class FrameProfileSwitcher():
     def change_profile(self, target):
         ConfigManager().switch_profile(target)
         self.pages["page_camera"].refresh_profile()
+        self.pages["page_cursor"].refresh_profile()
+        self.pages["page_gestures"].refresh_profile()
         self.pages["page_keyboard"].refresh_profile()
 
     def show_window(self):

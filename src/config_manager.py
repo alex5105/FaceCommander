@@ -210,7 +210,7 @@ class ConfigManager(metaclass=Singleton):
     # ------------------------------ MOUSE BINDINGS CONFIG ----------------------------- #
 
     def set_temp_mouse_binding(self, gesture, device: str, action: str,
-                               threshold: float, trigger: Trigger):
+                               threshold: float, trigger: Trigger, time_threshold: float):
 
         logger.info(
             "setting keybind for gesture: %s, device: %s, key: %s, threshold: %s, trigger: %s",
@@ -221,7 +221,7 @@ class ConfigManager(metaclass=Singleton):
 
         # Assign
         self.tempMouseBindings[gesture] = [
-            device, action, float(threshold), trigger.value
+            device, action, float(threshold), trigger.value, time_threshold
         ]
         self.unsave_mouse_bindings = True
 
