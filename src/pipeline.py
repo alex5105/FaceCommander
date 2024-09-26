@@ -1,7 +1,7 @@
 import logging
 
 from src.camera_manager import CameraManager
-from src.controllers import Keybinder
+from src.controllers import Keybinder, MouseController
 from src.detectors import FaceMesh
 
 
@@ -25,6 +25,7 @@ class Pipeline:
 
         # Control mouse position
         tracking_location = FaceMesh().get_tracking_location()
+        MouseController().act(tracking_location)
 
         # Control keyboard
         blendshape_values = FaceMesh().get_blendshapes()

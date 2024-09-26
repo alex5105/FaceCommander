@@ -43,7 +43,8 @@ class TaskKiller(metaclass=Singleton):
             from src.camera_manager import CameraManager
             CameraManager().start()
 
-            from src.controllers import Keybinder
+            from src.controllers import Keybinder, MouseController
+            MouseController().start()
             Keybinder().start()
 
             from src.detectors import FaceMesh
@@ -55,10 +56,11 @@ class TaskKiller(metaclass=Singleton):
         logger.info("Exit program")
 
         from src.camera_manager import CameraManager
-        from src.controllers import Keybinder
+        from src.controllers import Keybinder, MouseController
         from src.detectors import FaceMesh
 
         CameraManager().destroy()
+        MouseController().destroy()
         Keybinder().destroy()
         FaceMesh().destroy()
 
