@@ -85,7 +85,7 @@ jobs:
           name: SignedBuild
           path: dist
       - name: Build Installer
-        run: poetry run iscc installer.iss
+        run: iscc installer.iss
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
