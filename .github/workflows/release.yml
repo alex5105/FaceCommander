@@ -1,19 +1,10 @@
 name: Release Latest
 
-# This can only be manually triggered, this is because this flow runs
-# on a custom Github Runner that runs inside Ace Centre and has access
-# to our signing key. As such we want this entire flow to access as
-# little as possible and be triggered manually to avoid any bad actors
-# abusing the workflow
 on: [workflow_dispatch]
 
 jobs:
   GetVersion:
     runs-on: ubuntu-latest
-    outputs:
-      VersionNumber: ${{ steps.get_version_number.outputs.VersionNumber }}
-      VersionNumberSpaceless: ${{ steps.get_version_number.outputs.VersionNumberSpaceless }}
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -27,25 +18,24 @@ jobs:
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "::add-path::${HOME}/.local/bin"
-      
+
       - name: Install dependencies
         run: poetry install
-      
+
       - name: Get version number
         id: get_version_number
         run: |
-          poetry run python src/utils/readini.py\
-              assets/Version.ini Release VersionNumber >> "$GITHUB_OUTPUT"
-          cat "$GITHUB_OUTPUT"
+          VERSION_NUMBER=$(poetry run python src/utils/readini.py assets/Version.ini Release VersionNumber)
+          VERSION_NUMBER_SPACED=${VERSION_NUMBER// /}
+          echo "VERSION_NUMBER=${VERSION_NUMBER}" >> $GITHUB_ENV
+          echo "VERSION_NUMBER_SPACED=${VERSION_NUMBER_SPACED}" >> $GITHUB_ENV
 
   BuildExecutable:
     runs-on: windows-latest
     needs: [GetVersion]
-    env:
-      VersionTag: v${{needs.GetVersion.outputs.VersionNumber}}
-      VersionTagSpaceless: v${{needs.GetVersion.outputs.VersionNumberSpaceless}}
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -53,7 +43,7 @@ jobs:
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v2
-        
+
       - name: Install dependencies
         run: poetry install
 
@@ -104,10 +94,6 @@ jobs:
           retention-days: 1
 
   SignInstaller:
-    env:
-      # Convenience variables with v prefix and short name.
-      VersionTag: v${{needs.GetVersion.outputs.VersionNumber}}
-      VersionTagSpaceless: v${{needs.GetVersion.outputs.VersionNumberSpaceless}}
     runs-on: self-hosted
     needs: [BuildInstaller, GetVersion]
     steps:
@@ -116,8 +102,8 @@ jobs:
         with:
           name: UnsignedInstaller
           path: Output
-      - name: Sign Executable
-        run: signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a ./Output/FaceCommander-Installer-${{env.VersionTag}}.exe
+      - name: Sign Installer
+        run: signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a ./Output/FaceCommander-Installer-${VERSION_NUMBER}.exe
       - name: Upload build
         uses: actions/upload-artifact@v4
         with:
@@ -126,10 +112,6 @@ jobs:
           retention-days: 1
 
   Release:
-    env:
-      # Convenience variables with v prefix and short name.
-      VersionTag: v${{needs.GetVersion.outputs.VersionNumber}}
-      VersionTagSpaceless: v${{needs.GetVersion.outputs.VersionNumberSpaceless}}
     runs-on: self-hosted
     needs: [SignInstaller, GetVersion]
     steps:
@@ -140,7 +122,7 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: "refs/tags/${{env.VersionTagSpaceless}}",
+              ref: "refs/tags/${{ env.VERSION_NUMBER_SPACED }}",
               sha: context.sha
             })
 
@@ -149,13 +131,13 @@ jobs:
           name: SignedInstaller
           path: Output
 
-      - name: release
+      - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{env.VersionTagSpaceless}}
-          name: ${{env.VersionTag}}
+          tag_name: ${{ env.VERSION_NUMBER_SPACED }}
+          name: ${{ env.VERSION_NUMBER }}
           draft: false
           prerelease: false
           fail_on_unmatched_files: true
           files: |
-            Output/FaceCommander-Installer-${{env.VersionTag}}.exe
+            Output/FaceCommander-Installer-${{ env.VERSION_NUMBER }}.exe
