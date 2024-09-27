@@ -18,20 +18,23 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "${HOME}/.local/bin" >> $GITHUB_PATH
-
-      - name: Install dependencies
-        run: poetry install
-
       - name: Get version number
         id: get_version_number
         run: |
-          poetry run python src/utils/readini.py\
-              assets/Version.ini Release VersionNumber >> "$GITHUB_OUTPUT"
-          cat "$GITHUB_OUTPUT"
+          # Capture the output of the script
+          OUTPUT=$(python src/utils/readini.py assets/Version.ini Release VersionNumber)
+          
+          # Extract the VersionNumber and VersionNumberSpaceless from the output
+          VERSION_NUMBER=$(echo "$OUTPUT" | grep 'VersionNumber=' | cut -d '=' -f 2)
+          VERSION_NUMBER_SPACED=$(echo "$OUTPUT" | grep 'VersionNumberSpaceless=' | cut -d '=' -f 2)
+          
+          # Print extracted values for debugging
+          echo "Extracted VERSION_NUMBER: $VERSION_NUMBER"
+          echo "Extracted VERSION_NUMBER_SPACED: $VERSION_NUMBER_SPACED"
+
+          # Set the outputs for the job
+          echo "VersionNumber=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+          echo "VersionNumberSpaceless=$VERSION_NUMBER_SPACED" >> $GITHUB_OUTPUT
 
   BuildExecutable:
     runs-on: windows-latest
