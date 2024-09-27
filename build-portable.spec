@@ -1,6 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 from pathlib import Path
+from PyInstaller.utils.hooks import collect_all
 import mediapipe
 import customtkinter
 
@@ -12,6 +13,7 @@ mp_modules =  Path(mp_init.parent,"modules")
 ctk_init = Path(customtkinter.__file__)
 ctk_modules =  Path(ctk_init.parent,"modules")
 
+comtypes_data, comtypes_binaries, comtypes_hiddenimports = collect_all('comtypes')
 
 
 app = Analysis(
@@ -21,8 +23,9 @@ app = Analysis(
     datas=[(mp_modules.as_posix(), 'mediapipe/modules'),
                     ('assets','assets'),
                     ('configs','configs'),    
-                    (ctk_init.parent.as_posix(), 'customtkinter')],
-    hiddenimports=[],
+                    (ctk_init.parent.as_posix(), 'customtkinter'),
+                    *comtypes_data],
+    hiddenimports=comtypes_hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
