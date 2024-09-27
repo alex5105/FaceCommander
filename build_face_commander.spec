@@ -5,7 +5,7 @@ a = Analysis(
     ['face_commander.py'],
     pathex=[],
     binaries=[],
-    datas=[('assets/Version.ini', 'assets')],
+    datas=[('assets/Version.ini', 'assets'),('configs', 'configs')],
     hiddenimports=['comtypes.stream'],
     hookspath=[],
     hooksconfig={},
