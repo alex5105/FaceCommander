@@ -20,7 +20,6 @@ app = Analysis(
     pathex=[],
     binaries=[],
     datas=[(mp_modules.as_posix(), 'mediapipe/modules'),
-                    ('assets','assets'),
                     ('configs','configs'),    
                     (ctk_init.parent.as_posix(), 'customtkinter'),
                     *comtypes_data],

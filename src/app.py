@@ -3,23 +3,30 @@
 # Object oriented path handling.
 # https://docs.python.org/3/library/pathlib.html
 from pathlib import Path
+
 #
 # URL parsing module.
 # https://docs.python.org/3/library/urllib.parse.html#urllib.parse.urlunsplit
 from urllib.parse import urlunsplit
+
 #
 # Local imports.
 #
 from src.singleton_meta import Singleton
+
 #
 # PIP modules.
 #
 # https://platformdirs.readthedocs.io/en/latest/api.html
 from platformdirs import user_data_dir
+
 #
 # Local imports.
 #
 from src.utils.readini import get_ini_value
+
+import sys
+from pathlib import Path
 
 APP_NAME = "FaceCommander"
 APP_AUTHOR = "AceCentre"
@@ -35,18 +42,31 @@ UPDATE_SUBDIRECTORY = ("update",)
 
 # https://github.com/AceCentre/FaceCommander
 REPOSITORY_UNSPLIT = (
-    "https", "github.com", "/".join((APP_AUTHOR, APP_NAME)) , None, None)
+    "https",
+    "github.com",
+    "/".join((APP_AUTHOR, APP_NAME)),
+    None,
+    None,
+)
 
 # https://github.com/AceCentre/FaceCommander/releases
 RELEASES_WEBSITE_UNSPLIT = (
-    "https", "github.com", "/".join((APP_AUTHOR, APP_NAME, "releases"))
-    , None, None)
+    "https",
+    "github.com",
+    "/".join((APP_AUTHOR, APP_NAME, "releases")),
+    None,
+    None,
+)
 
 # https://api.github.com/repos/AceCentre/FaceCommander/releases
 RELEASES_API_UNSPLIT = (
-    "https", "api.github.com"
-    , "/".join(("repos", APP_AUTHOR, APP_NAME, "releases"))
-    , None, None)
+    "https",
+    "api.github.com",
+    "/".join(("repos", APP_AUTHOR, APP_NAME, "releases")),
+    None,
+    None,
+)
+
 
 class App(metaclass=Singleton):
 
@@ -59,7 +79,16 @@ class App(metaclass=Singleton):
         self._includePrereleases = False
 
         # Top-level paths.
-        self._installationRoot = Path(__file__).parents[1]
+        if getattr(sys, "frozen", False):
+            # This should deal with pyinstaller or nuitka
+            self._installationRoot = (
+                Path(sys._MEIPASS)
+                if hasattr(sys, "_MEIPASS")
+                else Path(sys.executable).parent
+            )
+        else:
+            self._installationRoot = Path(__file__).parents[1]
+
         self._dataRoot = None
 
         self._version = None
@@ -78,6 +107,7 @@ class App(metaclass=Singleton):
     @property
     def userAgentHeader(self):
         return self._userAgentHeader
+
     @userAgentHeader.setter
     def userAgentHeader(self, userAgentHeader):
         self._userAgentHeader = userAgentHeader
@@ -85,6 +115,7 @@ class App(metaclass=Singleton):
     @property
     def releaseInformationDelay(self):
         return self._releaseInformationDelay
+
     @releaseInformationDelay.setter
     def releaseInformationDelay(self, releaseInformationDelay):
         self._releaseInformationDelay = releaseInformationDelay
@@ -92,6 +123,7 @@ class App(metaclass=Singleton):
     @property
     def includePrereleases(self):
         return self._includePrereleases
+
     @includePrereleases.setter
     def includePrereleases(self, includePrereleases):
         self._includePrereleases = includePrereleases
@@ -105,20 +137,21 @@ class App(metaclass=Singleton):
     @property
     def installationRoot(self):
         return self._installationRoot
-    
+
     @property
     def dataRoot(self):
         if self._dataRoot is None:
-            self._dataRoot = Path(user_data_dir(
-                appname=APP_NAME, appauthor=APP_AUTHOR))
+            self._dataRoot = Path(user_data_dir(appname=APP_NAME, appauthor=APP_AUTHOR))
         return self._dataRoot
-    
+
     @property
     def version(self):
         if self._version is None:
             self._version = get_ini_value(
                 Path(self.installationRoot, *VERSION_INI_FILE),
-                VERSION_INI_SECTION, VERSION_INI_KEY)
+                VERSION_INI_SECTION,
+                VERSION_INI_KEY,
+            )
         return self._version
 
     @property
@@ -126,19 +159,19 @@ class App(metaclass=Singleton):
         if self._logPath is None:
             self._logPath = Path(self.dataRoot, LOG_FILENAME)
         return self._logPath
-    
+
     @property
     def profilesDirectory(self):
         if self._profilesDirectory is None:
-            self._profilesDirectory = Path(
-                self.dataRoot, *PROFILES_SUBDIRECTORY)
+            self._profilesDirectory = Path(self.dataRoot, *PROFILES_SUBDIRECTORY)
         return self._profilesDirectory
 
     @property
     def builtInProfilesDirectory(self):
         if self._builtInProfilesDirectory is None:
             self._builtInProfilesDirectory = Path(
-                self.installationRoot, *PROFILES_SUBDIRECTORY)
+                self.installationRoot, *PROFILES_SUBDIRECTORY
+            )
         return self._builtInProfilesDirectory
 
     @property

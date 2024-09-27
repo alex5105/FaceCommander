@@ -58,6 +58,7 @@ Name: "autostarticon"; Description: "{cm:AutoStartProgram,{#MyAppName}}"; GroupD
 [Files]
 Source: "dist\facecommander\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\facecommander\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
