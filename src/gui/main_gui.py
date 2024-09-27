@@ -27,6 +27,7 @@ class MainGui:
         super().__init__()
         self.tk_root = tk_root
 
+        self.tk_root.bind('<Control-x>', self.switch_cursor)
         # Get screen width and height for dynamic scaling
         screen_width = self.tk_root.winfo_screenwidth()
         screen_height = self.tk_root.winfo_screenheight()
@@ -131,6 +132,19 @@ class MainGui:
         self.current_device_props = ''
         self.tk_root.bind("<Configure>", self.on_resize)
 
+    def switch_cursor(self, event):
+        print(ConfigManager().config['enable'])
+        if ConfigManager().config['enable']:
+            print('Disable')
+            ConfigManager().set_temp_config(field="enable", value=0)
+            ConfigManager().apply_config()
+            MouseController().set_enabled(False)
+        else:
+            print('Enable')
+            ConfigManager().set_temp_config(field="enable", value=1)
+            ConfigManager().apply_config()
+            MouseController().set_enabled(True)
+    
     def switch_profile_location(self, device_props):
         if device_props == "small":
             master = self.tk_root
