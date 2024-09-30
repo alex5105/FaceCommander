@@ -429,7 +429,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         }
 
     def open_facial_gesture(self, div_name):
-        self.used_gestures = list(ConfigManager().keyboard_bindings.keys())
+        self.used_gestures = list(ConfigManager().keyboard_bindings.keys()) + list(ConfigManager().mouse_bindings.keys())
         # Open custom dialog and set callback for selection
         self.shared_dialog.open(div_name, self.used_gestures)
 

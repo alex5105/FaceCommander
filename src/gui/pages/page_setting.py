@@ -26,7 +26,8 @@ class PageSetting(customtkinter.CTkFrame):
         top_label = customtkinter.CTkLabel(master=self, text="Setting")
         top_label.cget("font").configure(size=24)
         top_label.grid(row=0, column=0, padx=20, pady=20, sticky="nw")
-
+        
+        self.log_status = customtkinter.BooleanVar(value=True)
         self.autostart_var = customtkinter.BooleanVar(value=self.check_autostart())
         # Toggle label
         self.auto_label = customtkinter.CTkLabel(master=self,
@@ -61,6 +62,55 @@ class PageSetting(customtkinter.CTkFrame):
                                 pady=60,
                                 sticky="nw")
         
+        self.log_label = customtkinter.CTkLabel(master=self,
+                                                   compound='right',
+                                                   text="Show Log",
+                                                   text_color="black",
+                                                   justify=tkinter.LEFT)
+        self.log_label.cget("font").configure(size=14)
+        self.log_label.grid(row=0,
+                               column=0,
+                               padx=(10, 0),
+                               pady=85,
+                               sticky="nw")
+
+        # Toggle switch
+        self.log_switch = customtkinter.CTkSwitch(
+            master=self,
+            text="",
+            width=200,
+            border_color="transparent",
+            switch_height=18,
+            switch_width=32,
+            variable=self.log_status,
+            command=self.change_log_status,
+            onvalue=1,
+            offvalue=0,
+        )
+    
+        self.log_switch.grid(row=0,
+                                column=0,
+                                padx=(100, 0),
+                                pady=85,
+                                sticky="nw")
+    
+    def change_log_status(self):
+        self.log_status = not self.log_status
+        logger.info(f'Logging Status: {self.log_status}')
+        self.update_logging_status()
+    
+    def update_logging_status(self):
+        """
+        Dynamically updates the logging level at runtime.
+        """
+        if self.log_status:
+            logging_level = logging.INFO
+        else:
+            logging_level = logging.CRITICAL
+        
+        # Update the level for all loggers
+        logging.getLogger().setLevel(logging_level)
+    
     def add_to_registry(self):
         try:
             exe_path = os.path.abspath(sys.argv[0])
@@ -199,10 +249,10 @@ class PageSetting(customtkinter.CTkFrame):
             return False
         
     def leave(self):
-        print('<Leave>')
+        logger.info('<Leave>')
     
     def enter(self):
-        print('<Enter>')
+        logger.info('<Enter>')
 
 if __name__ == "__main__":
     # Example usage:
