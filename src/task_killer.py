@@ -39,6 +39,8 @@ class TaskKiller(metaclass=Singleton):
 
             from src.config_manager import ConfigManager
             ConfigManager().start()
+            ConfigManager().set_temp_config(field="enable", value=0)
+            ConfigManager().apply_config()
 
             from src.camera_manager import CameraManager
             CameraManager().start()

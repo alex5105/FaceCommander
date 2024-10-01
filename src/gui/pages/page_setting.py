@@ -6,27 +6,33 @@ import os
 import sys
 import winreg
 import platform
+import subprocess
+from src.app import App
 from pathlib import Path
 from tkinter import messagebox
+from src.config_manager import ConfigManager
+from src.controllers import MouseController
 
 APP_NAME = 'FaceCommander'
 logger = logging.getLogger("PageSetting")
 
 class PageSetting(customtkinter.CTkFrame):
 
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, master_callback:callable, **kwargs):
         super().__init__(master, **kwargs)
 
         # Configure grid layout
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.os_type = platform.system()
-
+        self.master_callback = master_callback
         # Top label
         top_label = customtkinter.CTkLabel(master=self, text="Setting")
         top_label.cget("font").configure(size=24)
         top_label.grid(row=0, column=0, padx=20, pady=20, sticky="nw")
-
+        
+        self.log_status = customtkinter.BooleanVar(value=True)
+        self.cursor_status = customtkinter.BooleanVar(value=True)
         self.autostart_var = customtkinter.BooleanVar(value=self.check_autostart())
         # Toggle label
         self.auto_label = customtkinter.CTkLabel(master=self,
@@ -57,10 +63,126 @@ class PageSetting(customtkinter.CTkFrame):
     
         self.auto_switch.grid(row=0,
                                 column=0,
-                                padx=(100, 0),
+                                padx=(150, 0),
                                 pady=60,
                                 sticky="nw")
         
+        self.log_label = customtkinter.CTkLabel(master=self,
+                                                   compound='right',
+                                                   text="Logging",
+                                                   text_color="black",
+                                                   justify=tkinter.LEFT)
+        self.log_label.cget("font").configure(size=14)
+        self.log_label.grid(row=0,
+                               column=0,
+                               padx=(10, 0),
+                               pady=90,
+                               sticky="nw")
+
+        # Toggle switch
+        self.log_switch = customtkinter.CTkSwitch(
+            master=self,
+            text="",
+            width=200,
+            border_color="transparent",
+            switch_height=18,
+            switch_width=32,
+            variable=self.log_status,
+            command=self.change_log_status,
+            onvalue=1,
+            offvalue=0,
+        )
+    
+        self.log_switch.grid(row=0,
+                                column=0,
+                                padx=(150, 0),
+                                pady=90,
+                                sticky="nw")
+        
+        self.log_button = customtkinter.CTkButton(
+                    master=self,
+                    text="Open Log Directory",
+                    command=self.open_log_directory,
+                    width=180,
+                    fg_color='lightblue'
+                )
+        
+        self.log_button.grid(row=0,
+                                column=0,
+                                padx=(200, 0),
+                                pady=90,
+                                sticky="nw")
+        
+        self.cursor_control = customtkinter.CTkLabel(master=self,
+                                                   compound='right',
+                                                   text="Hide Cursor Control",
+                                                   text_color="black",
+                                                   justify=tkinter.LEFT)
+        self.cursor_control.cget("font").configure(size=14)
+        self.cursor_control.grid(row=0,
+                               column=0,
+                               padx=(10, 0),
+                               pady=120,
+                               sticky="nw")
+
+        # Toggle switch
+        self.cursor_switch = customtkinter.CTkSwitch(
+            master=self,
+            text="",
+            width=200,
+            border_color="transparent",
+            switch_height=18,
+            switch_width=32,
+            variable=self.cursor_status,
+            command=self.switch_cursor,
+            onvalue=1,
+            offvalue=0,
+        )
+    
+        self.cursor_switch.grid(row=0,
+                                column=0,
+                                padx=(150, 0),
+                                pady=120,
+                                sticky="nw")
+        
+    def open_log_directory(self):
+        log_file_path = App().logPath
+        
+        log_directory = os.path.dirname(log_file_path)
+    
+        # Check if the directory exists
+        if not os.path.exists(log_directory):
+            messagebox.showerror("Error", "Log directory not found!")
+            return
+        
+        # Open the directory in the system's file explorer
+        try:
+            if sys.platform == "win32":
+                subprocess.Popen(f'explorer /select,"{log_file_path}"')  # Windows
+            elif sys.platform == "darwin":
+                subprocess.call(["open", log_directory])  # macOS
+            else:
+                subprocess.call(["xdg-open", log_directory])  # Linux
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open log directory: {e}")
+
+    def change_log_status(self):
+        self.log_status = not self.log_status
+        logger.info(f'Logging Status: {self.log_status}')
+        self.update_logging_status()
+    
+    def update_logging_status(self):
+        """
+        Dynamically updates the logging level at runtime.
+        """
+        if self.log_status:
+            logging_level = logging.INFO
+        else:
+            logging_level = logging.CRITICAL
+        
+        # Update the level for all loggers
+        logging.getLogger().setLevel(logging_level)
+    
     def add_to_registry(self):
         try:
             exe_path = os.path.abspath(sys.argv[0])
@@ -198,11 +320,20 @@ class PageSetting(customtkinter.CTkFrame):
             print(f"Disable autostart failed: {e}")
             return False
         
+    def switch_cursor(self):
+        self.cursor_status = not self.cursor_status
+        ConfigManager().set_cursor_control(self.cursor_status)
+        self.master_callback()
+        if self.cursor_status:
+            ConfigManager().set_temp_config(field="enable", value=0)
+            ConfigManager().apply_config()
+            MouseController().set_enabled(False)
+
     def leave(self):
-        print('<Leave>')
+        logger.info('<Leave>')
     
     def enter(self):
-        print('<Enter>')
+        logger.info('<Enter>')
 
 if __name__ == "__main__":
     # Example usage:

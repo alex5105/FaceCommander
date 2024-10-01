@@ -25,6 +25,7 @@ pyinstaller = "^6.10.0"
 playsound = "1.2.2"
 pystray = "^0.19.5"
 pyautogui = "^0.9.54"
+nuitka = "^2.4.8"
 
 [tool.poetry.dev-dependencies]
 ruff = "^0.0.287"
