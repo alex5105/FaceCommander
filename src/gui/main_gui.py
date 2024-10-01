@@ -112,7 +112,7 @@ class MainGui:
             PageSelectGestures(master=self.tk_root,),
             PageKeyboard(master=self.tk_root,),
             PageAbout(tkRoot=self.tk_root, updateHost=self),
-            PageSetting(master=self.tk_root,)
+            PageSetting(master=self.tk_root, master_callback = self.cursor_control)
         ]
 
         self.current_page_name = None
@@ -133,18 +133,20 @@ class MainGui:
         self.tk_root.bind("<Configure>", self.on_resize)
 
     def switch_cursor(self, event):
-        print(ConfigManager().config['enable'])
+        if ConfigManager().get_cursor_control():
+            return
+        
         if ConfigManager().config['enable']:
-            print('Disable')
             ConfigManager().set_temp_config(field="enable", value=0)
             ConfigManager().apply_config()
             MouseController().set_enabled(False)
         else:
-            print('Enable')
             ConfigManager().set_temp_config(field="enable", value=1)
             ConfigManager().apply_config()
             MouseController().set_enabled(True)
-    
+    def cursor_control(self):
+        self.frame_menu.on_resize(self.current_device_props)
+
     def switch_profile_location(self, device_props):
         if device_props == "small":
             master = self.tk_root

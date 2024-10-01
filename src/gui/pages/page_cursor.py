@@ -65,7 +65,7 @@ class FrameSelectGesture(SafeDisposableFrame):
         # Toggle label
         self.toggle_label = customtkinter.CTkLabel(master=self,
                                                    compound='right',
-                                                   text="Cursor control",
+                                                   text="Cursor Control",
                                                    justify=tkinter.LEFT)
         self.toggle_label.cget("font").configure(weight='bold')
         self.toggle_label.grid(row=0,
@@ -288,7 +288,7 @@ class PageCursor(SafeDisposableFrame):
 
         # Top label.
         self.top_label = customtkinter.CTkLabel(master=self,
-                                                text="Cursor speed")
+                                                text="Cursor Control")
         self.top_label.cget("font").configure(size=24)
         self.top_label.grid(row=0,
                             column=0,

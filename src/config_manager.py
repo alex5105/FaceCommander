@@ -43,7 +43,7 @@ class ConfigManager(metaclass=Singleton):
         self.tempConfig = None
         self.keyboard_bindings = None
         self.mouse_bindings = None
-
+        self.cursor_control = False
         self.unsave_configs = False
         self.unsave_mouse_bindings = False
         self.unsave_keyboard_bindings = False
@@ -308,7 +308,14 @@ class ConfigManager(metaclass=Singleton):
         with keyboardPath.open('w') as file:
             out_json = dict(sorted(self.keyboard_bindings.items()))
             json.dump(out_json, file, indent=4, separators=(', ', ': '))
+    
+    # ------------------------------Cursor Control Page-------------------------------------- #
 
+    def set_cursor_control(self, status: bool):
+        self.cursor_control = status
+
+    def get_cursor_control(self):
+        return self.cursor_control
     # ---------------------------------------------------------------------------- #
     def apply_all(self):
         self.apply_config()
