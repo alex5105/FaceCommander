@@ -32,6 +32,7 @@ poetry run python -m nuitka ^
     --include-module=comtypes ^
     --include-module=comtypes.stream ^
     --include-module=comtypes.client ^
+    --assume-yes-for-downloads ^
     FaceCommander.py
 
 endlocal
