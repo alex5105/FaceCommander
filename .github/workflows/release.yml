@@ -16,7 +16,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11.4"
 
       - name: Get version number
         id: get_version_number
@@ -56,8 +56,10 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: Freeze Installer
-        run: poetry run pyinstaller build-signed.spec
+      - name: Build Apps
+        run: |
+          poetry run python -c "import site; print(site.getsitepackages()[0])"
+          .\build_executable.bat
 
       - name: Upload build
         uses: actions/upload-artifact@v4

@@ -75,7 +75,7 @@ gestures.
     With the virtual environment active, you can run the application directly:
 
     ```sh
-    poetry run python face_commander.py
+    poetry run python FaceCommander.py
     ```
 
     This ensures that the Python interpreter and dependencies used are from the Poetry-managed environment.
