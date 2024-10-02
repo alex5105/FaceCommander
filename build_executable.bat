@@ -10,11 +10,22 @@ set site_packages=%venv_path%\Lib\site-packages
 rem Convert the path to forward slashes for Nuitka compatibility
 set site_packages=%site_packages:\=/%
 
-rem Set the UAC flag conditionally based on --signed flag
+rem Initialize SIGNED_FLAG to 0 (unsigned by default)
+set SIGNED_FLAG=0
+
+rem Loop through the arguments and check if --signed is present
+for %%a in (%*) do (
+    if "%%a"=="--signed" (
+        set SIGNED_FLAG=1
+    )
+)
+
+rem Set the UAC_FLAG conditionally based on --signed flag
 set UAC_FLAG=
 if %SIGNED_FLAG%==1 (
     set UAC_FLAG=--windows-uac-uiaccess
 )
+
 
 rem Capture the Python version from the Poetry environment
 for /f "delims=" %%v in ('poetry run python -c "import sys; print(f'{sys.version_info.major}{sys.version_info.minor}')"') do set python_version=%%v
