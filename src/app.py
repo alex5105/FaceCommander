@@ -24,9 +24,8 @@ from platformdirs import user_data_dir
 # Local imports.
 #
 from src.utils.readini import get_ini_value
-
 import sys
-from pathlib import Path
+
 
 APP_NAME = "FaceCommander"
 APP_AUTHOR = "AceCentre"
