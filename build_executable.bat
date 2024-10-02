@@ -23,6 +23,7 @@ poetry run python -m nuitka ^
     --onefile ^
     --windows-icon-from-ico=assets/images/icon.ico ^
     --windows-console-mode=disable ^
+    --windows-uac-uiaccess ^
     --output-dir=dist ^
     --enable-plugin=tk-inter ^
     --nofollow-import-to=unittest ^
