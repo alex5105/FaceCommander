@@ -99,8 +99,9 @@ class FrameSelectGesture(SafeDisposableFrame):
             div["volume_bar"].grid()
             div["tips_label"].grid()
             div["subtle_label"].grid()
-            div["timer_slider"].grid()
-            div["timer_label"].grid()
+            if 'blink' in target_gesture:
+                div["timer_slider"].grid()
+                div["timer_label"].grid()
             div["trigger_dropdown"].grid()
             thres_value = div["slider"].get() / 100
             trigger = Trigger(div["trigger_dropdown"].get())
