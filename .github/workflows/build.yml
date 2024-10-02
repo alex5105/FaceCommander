@@ -75,7 +75,7 @@ jobs:
       - name: Build Installer
         run: poetry run iscc installer.iss
 
-      - name: Upload installer
+      - name: Upload Binary
         uses: actions/upload-artifact@v4
         with:
           name: Build
