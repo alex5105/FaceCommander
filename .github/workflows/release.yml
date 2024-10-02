@@ -59,7 +59,7 @@ jobs:
       - name: Build Apps
         run: |
           poetry run python -c "import site; print(site.getsitepackages()[0])"
-          .\build_executable.bat
+          .\build_executable.bat --signed
 
       - name: Upload build
         uses: actions/upload-artifact@v4
