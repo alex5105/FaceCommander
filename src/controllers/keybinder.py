@@ -24,6 +24,7 @@ class Keybinder(metaclass=Singleton):
     def __init__(self) -> None:
         self.delay_count = None
         self.key_states = None
+        self.last_act_time = None
         self.schedule_toggle_off = {}
         self.schedule_toggle_on = {}
         self.monitors = None
@@ -55,11 +56,13 @@ class Keybinder(metaclass=Singleton):
         """
         # keep states for all registered keys.
         self.key_states = {}
+        self.last_act_time = {}
         self.start_hold_ts = {}
         for _, v in (ConfigManager().mouse_bindings |
                      ConfigManager().keyboard_bindings).items():
             state_name = v[0]+"_"+v[1]
             self.key_states[state_name] = False
+            self.last_act_time[state_name] = int(time.time() * 1000)
             self.schedule_toggle_off[state_name] = False
             self.schedule_toggle_on[state_name] = True
             self.start_hold_ts[state_name] = math.inf
@@ -98,6 +101,8 @@ class Keybinder(metaclass=Singleton):
     def meta_action(self, val, action, threshold, is_active: bool) -> None:
         state_name = "meta_" + action
 
+        if self.last_act_time[state_name] > int(time.time() * 1000) - ConfigManager().get_throttle_time() * 1000:
+            return
         if action == "pause":
 
             if (val > threshold) and (self.key_states[state_name] is False):
@@ -110,6 +115,7 @@ class Keybinder(metaclass=Singleton):
                 self.key_states[state_name] = True
             elif (val < threshold) and (self.key_states[state_name] is True):
                 self.key_states[state_name] = False
+                self.last_act_time[state_name] = int(time.time() * 1000)
 
         if is_active:
 
@@ -127,6 +133,7 @@ class Keybinder(metaclass=Singleton):
                 elif (val < threshold) and (self.key_states[state_name] is
                                         True):
                     self.key_states[state_name] = False
+                    self.last_act_time[state_name] = int(time.time() * 1000)
 
             elif action == "cycle":
                 if (val > threshold) and (self.key_states[state_name] is
@@ -140,15 +147,19 @@ class Keybinder(metaclass=Singleton):
                 elif (val < threshold) and (self.key_states[state_name] is
                                         True):
                     self.key_states[state_name] = False
+                    self.last_act_time[state_name] = int(time.time() * 1000)
 
     def mouse_action(self, val, action, threshold, mode) -> None:
         state_name = "mouse_" + action
 
+        if self.last_act_time[state_name] > int(time.time() * 1000) - ConfigManager().get_throttle_time() * 1000:
+            return
         if mode == Trigger.SINGLE:
             if val > threshold:
                 if self.key_states[state_name] is False:
                     pydirectinput.click(button=action)
                     self.key_states[state_name] = True
+                    self.last_act_time[state_name] = int(time.time() * 1000)
             if val < threshold:
                 self.key_states[state_name] = False
 
@@ -160,6 +171,7 @@ class Keybinder(metaclass=Singleton):
             elif (val < threshold) and (self.key_states[state_name] is True):
                 pydirectinput.mouseUp(button=action)
                 self.key_states[state_name] = False
+                self.last_act_time[state_name] = int(time.time() * 1000)
 
         elif mode == Trigger.DYNAMIC:
             if val > threshold:
@@ -177,11 +189,12 @@ class Keybinder(metaclass=Singleton):
             elif (val < threshold) and (self.key_states[state_name] is True):
 
                 self.key_states[state_name] = False
-
+                self.last_act_time[state_name] = int(time.time() * 1000)
                 if self.holding[state_name]:
                     pydirectinput.mouseUp(button=action)
                     self.holding[state_name] = False
                     self.start_hold_ts[state_name] = math.inf
+                self.last_act_time[state_name] = int(time.time() * 1000)
 
         elif mode == Trigger.TOGGLE:
             if val > threshold:
@@ -194,6 +207,7 @@ class Keybinder(metaclass=Singleton):
                     if self.schedule_toggle_off[state_name] is True:
                         pydirectinput.mouseUp(button=action)
                         self.key_states[state_name] = False
+                        self.last_act_time[state_name] = int(time.time() * 1000)
 
             if val < threshold:
                 if self.key_states[state_name] is True:
@@ -221,16 +235,20 @@ class Keybinder(metaclass=Singleton):
                 if self.key_states[state_name] is True:
                     self.key_states[state_name] = False
                     self.start_hold_ts[state_name] = math.inf
+                    self.last_act_time[state_name] = int(time.time() * 1000)
 
     def keyboard_action(self, val, keysym, threshold, mode):
 
         state_name = "keyboard_" + keysym
 
+        if self.last_act_time[state_name] > int(time.time() * 1000) - ConfigManager().get_throttle_time() * 1000:
+            return
         if mode == Trigger.SINGLE:
             if val > threshold:
                 if self.key_states[state_name] is False:
                     pydirectinput.press(keys=keysym)
                     self.key_states[state_name] = True
+                    self.last_act_time[state_name] = int(time.time() * 1000)
             if val < threshold:
                 self.key_states[state_name] = False
 
@@ -242,6 +260,7 @@ class Keybinder(metaclass=Singleton):
             elif (val < threshold) and (self.key_states[state_name] is True):
                 pydirectinput.keyUp(key=keysym)
                 self.key_states[state_name] = False
+                self.last_act_time[state_name] = int(time.time() * 1000)
 
         elif mode == Trigger.DYNAMIC:
             if val > threshold:
@@ -263,7 +282,8 @@ class Keybinder(metaclass=Singleton):
                 if self.holding[state_name]:
                     pydirectinput.keyUp(key=keysym)
                     self.holding[state_name] = False
-                    self.start_hold_ts[state_name] = math.inf
+                    self.start_hold_ts[state_name] = math.inf    
+                self.last_act_time[state_name] = int(time.time() * 1000)
 
         elif mode == Trigger.TOGGLE:
             if val > threshold:
@@ -276,6 +296,7 @@ class Keybinder(metaclass=Singleton):
                     if self.schedule_toggle_off[state_name] is True:
                         pydirectinput.keyUp(key=keysym)
                         self.key_states[state_name] = False
+                        self.last_act_time[state_name] = int(time.time() * 1000)
 
             if val < threshold:
                 if self.key_states[state_name] is True:
@@ -303,6 +324,7 @@ class Keybinder(metaclass=Singleton):
                 if self.key_states[state_name] is True:
                     self.key_states[state_name] = False
                     self.start_hold_ts[state_name] = math.inf
+                    self.last_act_time[state_name] = int(time.time() * 1000)
 
     def act(self, blendshape_values) -> None:
         """Trigger devices action base on blendshape values

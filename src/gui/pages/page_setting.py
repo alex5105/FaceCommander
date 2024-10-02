@@ -12,6 +12,8 @@ from pathlib import Path
 from tkinter import messagebox
 from src.config_manager import ConfigManager
 from src.controllers import MouseController
+from functools import partial
+import tkinter as tk
 
 APP_NAME = 'FaceCommander'
 logger = logging.getLogger("PageSetting")
@@ -145,6 +147,43 @@ class PageSetting(customtkinter.CTkFrame):
                                 pady=120,
                                 sticky="nw")
         
+        self.slider = customtkinter.CTkSlider(master=self,
+                                             from_=1,
+                                             to=300,
+                                             width=250,
+                                             number_of_steps=300,
+                                             command=partial(self.slider_drag_callback))
+        self.slider.bind("<Button-1>",
+                    partial(self.slider_mouse_down_callback))
+        self.slider.bind("<ButtonRelease-1>",
+                    partial(self.slider_mouse_up_callback))
+        self.slider.grid(row=0,
+                    column=0,
+                    padx=(5, 0),
+                    pady=(160, 10),
+                    sticky="nw")
+        
+        self.slider_label = customtkinter.CTkLabel(master=self,
+                                            text="0\t            Throttle time\t\t 3s",
+                                            text_color="#868686",
+                                            justify=tk.LEFT)
+        self.slider_label.cget("font").configure(size=11)
+        self.slider_label.grid(row=0,
+                        column=0,
+                        padx=(10, 0),
+                        pady=(182, 10),
+                        sticky="nw")
+        
+    def slider_drag_callback(self, slider_value: str):
+        self.slider_dragging = True
+
+    def slider_mouse_down_callback(self, event):
+        self.slider_dragging = True
+
+    def slider_mouse_up_callback(self, event):
+        self.slider_dragging = False
+        ConfigManager().set_throttle_time(self.slider.get()/100)
+
     def open_log_directory(self):
         log_file_path = App().logPath
         
