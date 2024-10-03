@@ -51,7 +51,7 @@ class MainApp(MainGui, Pipeline):
         self.is_active = True
 
         # Enter loop
-        self.tk_root.after(1, self.anim_loop)
+        self.tk_root.after(50, self.anim_loop)
 
     def anim_loop(self):
         try:
@@ -60,7 +60,7 @@ class MainApp(MainGui, Pipeline):
 
                 # Run detectors and controllers.
                 self.pipeline_tick()
-                self.tk_root.after(1, self.anim_loop)
+                self.tk_root.after(50, self.anim_loop)
         except Exception as e:
             logging.critical(e, exc_info=e)
 

@@ -11,6 +11,7 @@ from pystray import Icon, MenuItem, Menu
 from PIL import Image, ImageDraw
 import threading
 import platform
+import ctypes
 
 CANVAS_WIDTH = 320
 CANVAS_HEIGHT = 240
@@ -46,7 +47,7 @@ class FrameCamPreview(SafeDisposableFrame):
                                      bd=0,
                                      relief='ridge',
                                      highlightthickness=0)
-        self.canvas.grid(row=0, column=0, padx=10, pady=10, sticky="sw")
+        self.canvas.grid(row=0, column=0, padx=10, pady=0, sticky="sw")
 
         # Toggle label
         self.toggle_label = customtkinter.CTkLabel(master=self,
@@ -96,7 +97,7 @@ class FrameCamPreview(SafeDisposableFrame):
         self.minimize_label.grid(row=1,
                                column=0,
                                padx=(10, 0),
-                               pady=30,
+                               pady=(30, 0),
                                sticky="nw")
 
         # Toggle switch
@@ -119,22 +120,35 @@ class FrameCamPreview(SafeDisposableFrame):
         self.minimize_switch.grid(row=1,
                                 column=0,
                                 padx=(100, 0),
-                                pady=30,
+                                pady=(30, 0),
                                 sticky="nw")
         
-        # Toggle description label
-        self.toggle_label = customtkinter.CTkLabel(
-            master=self,
-            compound='right',
-            text="Allow facial gestures to control\nyour actions. ",
-            text_color="#444746",
-            justify=tkinter.LEFT)
-        self.toggle_label.cget("font").configure(size=12)
-        self.toggle_label.grid(row=2,
-                               column=0,
-                               padx=(10, 0),
-                               pady=5,
-                               sticky="nw")
+        
+        hdc = ctypes.windll.user32.GetDC(0)
+    
+        # Get the screen DPI
+        dpi_x = ctypes.windll.gdi32.GetDeviceCaps(hdc, 88)  # 88 is the LOGPIXELSX value for horizontal DPI
+        
+        # Release the device context (DC)
+        ctypes.windll.user32.ReleaseDC(0, hdc)
+        
+        # 96 DPI is the default for 100% scaling, so scaling is DPI / 96
+        scaling_percentage = dpi_x / 96 * 100
+
+        if int(self.tk_root.winfo_screenwidth() * 100 / scaling_percentage) > 1280:
+            # Toggle description label
+            self.toggle_label = customtkinter.CTkLabel(
+                master=self,
+                compound='right',
+                text="Allow facial gestures to control\nyour actions. ",
+                text_color="#444746",
+                justify=tkinter.LEFT)
+            self.toggle_label.cget("font").configure(size=12)
+            self.toggle_label.grid(row=2,
+                                column=0,
+                                padx=(10, 0),
+                                pady=5,
+                                sticky="nw")
 
         # Set first image.
         self.canvas_image = self.canvas.create_image(0,
