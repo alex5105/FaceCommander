@@ -7,7 +7,7 @@ from functools import partial
 from tkinter import IntVar, StringVar
 
 import customtkinter
-
+import ctypes
 from src.app import App
 from src.update_manager import UpdateManager
 from src.gui import frames
@@ -28,16 +28,27 @@ class MainGui:
         self.tk_root = tk_root
 
         self.tk_root.bind('<Control-x>', self.switch_cursor)
+
+        hdc = ctypes.windll.user32.GetDC(0)
+    
+        # Get the screen DPI
+        dpi_x = ctypes.windll.gdi32.GetDeviceCaps(hdc, 88)  # 88 is the LOGPIXELSX value for horizontal DPI
+        
+        # Release the device context (DC)
+        ctypes.windll.user32.ReleaseDC(0, hdc)
+        
+        # 96 DPI is the default for 100% scaling, so scaling is DPI / 96
+        scaling_percentage = dpi_x / 96 * 100
         # Get screen width and height for dynamic scaling
-        screen_width = self.tk_root.winfo_screenwidth()
-        screen_height = self.tk_root.winfo_screenheight()
+        screen_width = int(self.tk_root.winfo_screenwidth() * 100 / scaling_percentage)
+        screen_height = int(self.tk_root.winfo_screenheight() * 100 / scaling_percentage)
         self.bounday_width = 800
         self.sidebar_big_size = 260
         self.sidebar_small_size = 60
 
         # Set window size based on screen dimensions for tablets
         if screen_width <= 1280:
-            self.tk_root.geometry(f"{int(screen_width * 0.9)}x{int(screen_height * 0.9)}")
+            self.tk_root.geometry(f"{int(screen_width * 0.9)}x{int(screen_height * 0.9)}+0+0")
         else:
             self.tk_root.geometry("1024x800")
 

@@ -55,7 +55,7 @@ class FrameSelectKeyboard(SafeDisposableScrollableFrame):
         self.shared_info_balloon = Balloon(
             self, image_path="assets/images/balloon.png")
         
-        self.shared_dialog = Select_Facial_Gesture(self, shape_list.available_gestures, width=750, callback=self.dialog_callback)
+        self.shared_dialog = Select_Facial_Gesture(self, shape_list.available_gestures, width=650, callback=self.dialog_callback)
 
         self.help_icon = customtkinter.CTkImage(
             Image.open("assets/images/help.png").resize(HELP_ICON_SIZE),
