@@ -44,7 +44,7 @@ class FrameSelectGesture(SafeDisposableFrame):
             Image.open("assets/images/help.png").resize(HELP_ICON_SIZE),
             size=HELP_ICON_SIZE)
 
-        self.shared_dialog = Select_Facial_Gesture(self, shape_list.available_gestures, width=750, callback=self.dialog_callback)
+        self.shared_dialog = Select_Facial_Gesture(self, shape_list.available_gestures, width=650, callback=self.dialog_callback)
         # Divs
         self.divs = self.create_divs(shape_list.available_actions_keys,
                                      shape_list.available_gestures_keys)
@@ -99,8 +99,9 @@ class FrameSelectGesture(SafeDisposableFrame):
             div["volume_bar"].grid()
             div["tips_label"].grid()
             div["subtle_label"].grid()
-            div["timer_slider"].grid()
-            div["timer_label"].grid()
+            if 'blink' in target_gesture:
+                div["timer_slider"].grid()
+                div["timer_label"].grid()
             div["trigger_dropdown"].grid()
             thres_value = div["slider"].get() / 100
             trigger = Trigger(div["trigger_dropdown"].get())

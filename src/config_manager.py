@@ -47,6 +47,7 @@ class ConfigManager(metaclass=Singleton):
         self.unsave_configs = False
         self.unsave_mouse_bindings = False
         self.unsave_keyboard_bindings = False
+        self.throttle_time = 1.5
         self.config = None
 
         # Load config
@@ -60,6 +61,12 @@ class ConfigManager(metaclass=Singleton):
             self._currentProfilePath = Path(
                 App().profilesDirectory, CURRENT_PROFILE_FILENAME)
         return self._currentProfilePath
+    
+    def set_throttle_time(self, time):
+        self.throttle_time = time
+    
+    def get_throttle_time(self):
+        return self.throttle_time
     
     def _get_profiles_directory(self, *name):
         path = App().profilesDirectory

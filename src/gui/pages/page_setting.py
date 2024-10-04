@@ -12,6 +12,8 @@ from pathlib import Path
 from tkinter import messagebox
 from src.config_manager import ConfigManager
 from src.controllers import MouseController
+from functools import partial
+import tkinter as tk
 
 APP_NAME = 'FaceCommander'
 logger = logging.getLogger("PageSetting")
@@ -33,6 +35,7 @@ class PageSetting(customtkinter.CTkFrame):
         
         self.log_status = customtkinter.BooleanVar(value=True)
         self.cursor_status = customtkinter.BooleanVar(value=True)
+        self.throttle_status = customtkinter.BooleanVar(value=True)
         self.autostart_var = customtkinter.BooleanVar(value=self.check_autostart())
         # Toggle label
         self.auto_label = customtkinter.CTkLabel(master=self,
@@ -44,7 +47,7 @@ class PageSetting(customtkinter.CTkFrame):
         self.auto_label.grid(row=0,
                                column=0,
                                padx=(10, 0),
-                               pady=60,
+                               pady=(60, 0),
                                sticky="nw")
 
         # Toggle switch
@@ -64,7 +67,7 @@ class PageSetting(customtkinter.CTkFrame):
         self.auto_switch.grid(row=0,
                                 column=0,
                                 padx=(150, 0),
-                                pady=60,
+                                pady=(60, 0),
                                 sticky="nw")
         
         self.log_label = customtkinter.CTkLabel(master=self,
@@ -76,7 +79,7 @@ class PageSetting(customtkinter.CTkFrame):
         self.log_label.grid(row=0,
                                column=0,
                                padx=(10, 0),
-                               pady=90,
+                               pady=(90, 0),
                                sticky="nw")
 
         # Toggle switch
@@ -96,7 +99,7 @@ class PageSetting(customtkinter.CTkFrame):
         self.log_switch.grid(row=0,
                                 column=0,
                                 padx=(150, 0),
-                                pady=90,
+                                pady=(90, 0),
                                 sticky="nw")
         
         self.log_button = customtkinter.CTkButton(
@@ -110,7 +113,7 @@ class PageSetting(customtkinter.CTkFrame):
         self.log_button.grid(row=0,
                                 column=0,
                                 padx=(200, 0),
-                                pady=90,
+                                pady=(90, 0),
                                 sticky="nw")
         
         self.cursor_control = customtkinter.CTkLabel(master=self,
@@ -122,7 +125,7 @@ class PageSetting(customtkinter.CTkFrame):
         self.cursor_control.grid(row=0,
                                column=0,
                                padx=(10, 0),
-                               pady=120,
+                               pady=(120, 0),
                                sticky="nw")
 
         # Toggle switch
@@ -142,9 +145,88 @@ class PageSetting(customtkinter.CTkFrame):
         self.cursor_switch.grid(row=0,
                                 column=0,
                                 padx=(150, 0),
-                                pady=120,
+                                pady=(120, 0),
                                 sticky="nw")
         
+        self.throttle_time = customtkinter.CTkLabel(master=self,
+                                                   compound='right',
+                                                   text="Throttle time/Ignore repeated gestures time",
+                                                   text_color="black",
+                                                   justify=tkinter.LEFT)
+        self.throttle_time.cget("font").configure(size=14)
+        self.throttle_time.grid(row=0,
+                               column=0,
+                               padx=(10, 0),
+                               pady=(150, 0),
+                               sticky="nw")
+
+        # Toggle switch
+        self.throttle_switch = customtkinter.CTkSwitch(
+            master=self,
+            text="",
+            width=280,
+            border_color="transparent",
+            switch_height=18,
+            switch_width=32,
+            variable=self.throttle_status,
+            command=self.set_throttle_status,
+            onvalue=1,
+            offvalue=0,
+        )
+    
+        self.throttle_switch.grid(row=0,
+                                column=0,
+                                padx=(300, 0),
+                                pady=(150, 0),
+                                sticky="nw")
+        
+        self.slider = customtkinter.CTkSlider(master=self,
+                                             from_=1,
+                                             to=300,
+                                             width=300,
+                                             number_of_steps=300,
+                                             command=partial(self.slider_drag_callback))
+        self.slider.bind("<Button-1>",
+                    partial(self.slider_mouse_down_callback))
+        self.slider.bind("<ButtonRelease-1>",
+                    partial(self.slider_mouse_up_callback))
+        self.slider.grid(row=0,
+                    column=0,
+                    padx=(5, 0),
+                    pady=(190, 10),
+                    sticky="nw")
+        
+        self.slider_label = customtkinter.CTkLabel(master=self,
+                                            text="0\t\tThrottle time\t\t3s",
+                                            text_color="#868686",
+                                            justify=tk.LEFT)
+        self.slider_label.cget("font").configure(size=11)
+        self.slider_label.grid(row=0,
+                        column=0,
+                        padx=(10, 0),
+                        pady=(212, 10),
+                        sticky="nw")
+        
+    def slider_drag_callback(self, slider_value: str):
+        self.slider_dragging = True
+
+    def slider_mouse_down_callback(self, event):
+        self.slider_dragging = True
+
+    def slider_mouse_up_callback(self, event):
+        self.slider_dragging = False
+        ConfigManager().set_throttle_time(self.slider.get()/100)
+    
+    def set_throttle_status(self):
+        self.throttle_status = not self.throttle_status
+        if not self.throttle_status:
+            print(self.throttle_status)
+            self.slider.configure(state="disabled", fg_color="lightgray", progress_color="gray", button_color="gray")
+            ConfigManager().set_throttle_time(0)
+        else:
+            self.slider.configure(state="normal", fg_color="#D2E3FC", progress_color="#1A73E8", button_color="#1A73E8")
+            ConfigManager().set_throttle_time(self.slider.get()/100)
+
     def open_log_directory(self):
         log_file_path = App().logPath
         

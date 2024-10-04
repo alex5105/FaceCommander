@@ -1,6 +1,7 @@
 import customtkinter
 from PIL import Image
 from src.config_manager import ConfigManager
+import ctypes
 
 ICON_SIZE = (40, 40)  # Adjust icon size as needed
 IMAGE_SIZE = (100, 70)
@@ -36,7 +37,7 @@ class Select_Facial_Gesture:
         self.dialog_window.resizable(True, True)
 
         # Center the dialog on the parent window
-        self.center_window(self.dialog_window, self.width, 550)
+        self.center_window(self.dialog_window, self.width, 500)
 
         # Set dialog as modal
         self.dialog_window.grab_set()  # Block interaction with other windows
@@ -106,10 +107,22 @@ class Select_Facial_Gesture:
 
     def center_window(self, window, width, height):
         """Center the window on the parent window."""
-        parent_x = self.master.winfo_rootx()
-        parent_y = self.master.winfo_rooty()
-        parent_width = self.master.winfo_width()
-        parent_height = self.master.winfo_height()
+        
+        hdc = ctypes.windll.user32.GetDC(0)
+    
+        # Get the screen DPI
+        dpi_x = ctypes.windll.gdi32.GetDeviceCaps(hdc, 88)  # 88 is the LOGPIXELSX value for horizontal DPI
+        
+        # Release the device context (DC)
+        ctypes.windll.user32.ReleaseDC(0, hdc)
+        
+        # 96 DPI is the default for 100% scaling, so scaling is DPI / 96
+        scaling_percentage = dpi_x / 96 * 100
+
+        parent_x = int(self.master.winfo_rootx() * 100 / scaling_percentage)
+        parent_y = int(self.master.winfo_rooty() * 100 / scaling_percentage)
+        parent_width = int(self.master.winfo_width() * 100 / scaling_percentage)
+        parent_height = int(self.master.winfo_height() * 100 / scaling_percentage)
         x = parent_x + (parent_width // 4) - (width // 2)
         y = parent_y + (parent_height // 4) - (height // 2)
         window.geometry(f"{width}x{height}+{x}+{y}")
