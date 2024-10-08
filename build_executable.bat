@@ -39,7 +39,6 @@ poetry run python -m nuitka ^
     --standalone ^
     --onefile ^
     --windows-icon-from-ico=assets/images/icon.ico ^
-    --windows-console-mode=disable ^
     %UAC_FLAG% ^
     --output-dir=dist ^
     --enable-plugin=tk-inter ^
